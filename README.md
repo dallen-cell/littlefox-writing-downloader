@@ -16,7 +16,9 @@ Read-only Python downloader for outstanding student Writing submissions, intende
 - [docs/stage1-handoff.md](docs/stage1-handoff.md) — historical completed Stage 1 instructions.
 
 ## How development works
-Use the existing Codex Cloud environment and work on a reviewable branch. Offline synthetic tests first. Keep real student submissions, identifiers, browser credentials and session state out of GitHub. Later authorised live tests will run with a human-authenticated school Chrome session through local Python/CDP. Do not claim a working live downloader until that separate validation is complete.
+Use the existing Codex Cloud environment and work on a reviewable branch. Offline synthetic tests first. Keep real student submissions, identifiers, browser credentials and session state out of GitHub. Later authorised live tests will run with a human-authenticated Chrome session on a suitable Windows session computer through local Python/CDP. Do not claim a working live downloader until that separate validation is complete.
+
+**Deployment requirement:** Work on resettable/disposable Windows session computers, not a specific school PC. Reuse the proven Recordings downloader's session setup/launcher where feasible. Do not assume permanent Python/Playwright installations, admin rights, or saved Chrome login state. The manual setup described today is only a first diagnostic, not the accepted end-user delivery workflow.
 
 The existing Recordings downloader is a reference, preserved separately in Drive. Its working source should not be overwritten.
 
@@ -49,4 +51,4 @@ The package also contains an offline-only normalized state interpreter and conse
 
 ## One-record local validation probe
 
-The optional [one-record probe runbook](docs/one-record-probe.md) describes the separately run, human-controlled school-PC preflight. The probe attaches only to loopback CDP and reads one manually opened detail tab without navigation or mutation. It intentionally blocks interpretation and export until actual actor, metadata and markup evidence is reviewed.
+The optional [one-record probe runbook](docs/one-record-probe.md) describes the separately run, human-controlled Windows session-computer preflight. The probe attaches only to loopback CDP and reads one manually opened detail tab without navigation or mutation. It intentionally blocks interpretation and export until actual actor, metadata and markup evidence is reviewed.
