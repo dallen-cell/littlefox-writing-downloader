@@ -51,4 +51,4 @@ jobs:
           name: LittleFoxWritingSession
           path: dist/LittleFoxWritingSession_Current.zip
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90
