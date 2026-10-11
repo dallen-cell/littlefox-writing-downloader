@@ -64,3 +64,9 @@ This preflight can prove local CDP attachment, one-page matching, numbered `cont
 
 Stop after this one command. A per-session restart/reinstallation requirement is not evidence of a permanent school-PC dependency. Do not browse to another record for the probe, rerun across students, or work around a blocker by adding selectors locally. Record only the sanitized JSON and the human's pass/block assessment for review before any next bounded change.
 
+
+## Preferred session-computer package
+
+The hand-written `py -3.11` commands above are provisional development instructions. For a resettable Windows session computer, use the separately built `LittleFoxWritingSession_Current.zip` from the Windows GitHub Actions artifact. Unzip it into a local writable folder, run `setup_session.cmd`, then run `run_one_record_probe.cmd`. The setup follows the existing Recordings session bootstrap: per-user Python installation if missing, `.venv`, and Playwright. The launcher discovers Chrome, opens a dedicated local debugging profile and waits for the human to sign in and manually open **one** Writing detail page before calling the probe. It creates no export. Refer to the package's `README_SESSION.txt` for local privacy/cleanup rules.
+
+Internet access is needed for the Python installer or pip packages if not available locally. If session policy blocks the install, CDP or Chrome startup, stop and record the environmental blocker. Do not request administrator elevation or move authentication to a server to work around it.
