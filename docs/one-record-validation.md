@@ -34,3 +34,13 @@ Stop after one page, one record, and one candidate file (or documented block). S
 
 ## Codex task boundary
 Prepare only the **local probe** and focused offline tests in a feature branch/PR; do **not** claim a live validation from Codex Cloud. Keep GPT-5.6 Sol Light as default. Separate local execution is necessary and must be done by a human with the approved browser. Do not merge without review.
+
+## Evidence reuse and sequential acceptance gates
+
+The existing canonical Writing technical map (Google Drive document ID `1_MIinu-WsJc0FVI4mGMae8UYFWMBuRj7coxmSm6t8c4`) already documents historically observed versioned Writing source states, validated source-HTML acquisition, revision markup carry-forward, and a 15-case rendered-text regression. Reuse those observations as historical evidence; do not re-map the site from scratch or assume all details are unchanged.
+
+**Gate A — current packaged connectivity preflight:** prove local Chrome attachment and field presence on one human-opened page. The current report has only aggregate counts and fixed blocker codes. Exit status 3 alone cannot distinguish a successful read from an acquisition failure; examine the JSON. It neither classifies Writing nor exports a seven-field file.
+
+**Gate B — separately bounded single-record interpretation:** only after the preflight succeeds, verify one record's source-state actor, outstanding status, required metadata and correction text against normal UI observations. Treat unknown source values and unsupported markup as blockers. The current probe does not implement this gate.
+
+**Gate C — future batch operation:** class discovery, pagination, date-based selection and ZIP export require separate approval after the one-record verification. Do not extend synthetic parser development while Gate A remains untested.
