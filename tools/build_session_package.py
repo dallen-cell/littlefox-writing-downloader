@@ -21,6 +21,7 @@ STATIC_FILES = {
     "session/setup_session.cmd": "setup_session.cmd",
     "session/setup_session.ps1": "setup_session.ps1",
     "session/run_one_record_probe.cmd": "run_one_record_probe.cmd",
+    "session/run_one_record_review.cmd": "run_one_record_review.cmd",
 }
 
 
