@@ -66,6 +66,7 @@ try {
         "--no-default-browser-check",
         "--remote-debugging-port=9222",
         "--user-data-dir=`"$profile`"",
+        "about:blank",
         $url
     ) -PassThru
 
@@ -78,6 +79,14 @@ try {
         catch { Start-Sleep -Seconds 1 }
     }
     if (-not $connected) { throw "Chrome local CDP preflight unavailable" }
+
+    # Simulate the manager window alongside the Writing detail target. The
+    # probe must select the unique detail page rather than require one tab.
+    $targets = @(Invoke-RestMethod -Uri "http://127.0.0.1:9222/json/list" -TimeoutSec 5)
+    $pageTargets = @($targets | Where-Object { $_.type -eq "page" })
+    if ($pageTargets.Count -lt 2) {
+        throw "Synthetic multi-page CDP scenario was not established"
+    }
 
     $raw = & $probe --cdp-endpoint "http://127.0.0.1:9222" | Out-String
     $exitCode = $LASTEXITCODE
