@@ -96,6 +96,11 @@ class _ConservativeHtmlParser(HTMLParser):
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         tag = tag.lower()
+        if self.active_rule is not None and self.active_rule.startswith("empty-"):
+            self._block(
+                "nonempty_placeholder",
+                f"Placeholder rule contains structural markup: {self.active_rule}",
+            )
         if tag == "br":
             if attrs:
                 self._block("unsupported_attributes", "Attributes on <br> are not supported")
@@ -191,6 +196,11 @@ def interpret_html(source_html: str) -> MarkupResult:
     parser = _ConservativeHtmlParser()
     try:
         parser.feed(source_html)
+        # HTMLParser.close() converts some unfinished terminal constructs into
+        # ordinary data. Inspect its pending buffer first so truncated tags,
+        # comments, declarations and entities cannot become exportable text.
+        if parser.rawdata:
+            raise MarkupBlocked("malformed_html", "Incomplete terminal HTML fragment")
         parser.close()
         return parser.finish()
     except MarkupBlocked:

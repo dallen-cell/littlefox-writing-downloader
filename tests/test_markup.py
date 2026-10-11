@@ -35,6 +35,35 @@ class MarkupTests(unittest.TestCase):
         result = interpret_html("Student wrote &amp;lt;tag&amp;gt;.")
         self.assertEqual(result.correction_text, "Student wrote &lt;tag&gt;.")
 
+    def test_incomplete_terminal_fragments_block_but_escaped_less_than_passes(self) -> None:
+        malformed = (
+            "student <span",
+            "student <!-- unfinished",
+            "student <!",
+            "student <?instruction",
+            "student &amp",
+        )
+        for source in malformed:
+            with self.subTest(source=source):
+                with self.assertRaises(MarkupBlocked) as caught:
+                    interpret_html(source)
+                self.assertEqual(caught.exception.code, "malformed_html")
+        self.assertEqual(
+            interpret_html("Student wrote 2 &lt; 3.").correction_text,
+            "Student wrote 2 < 3.",
+        )
+
+    def test_empty_placeholders_reject_structural_children_but_allow_genuine_empty(self) -> None:
+        for rule in ("empty-insertion-placeholder", "empty-punctuation-placeholder"):
+            with self.subTest(rule=rule, case="structural"):
+                with self.assertRaises(MarkupBlocked) as caught:
+                    interpret_html(f'<span data-lfw-synthetic-rule="{rule}"><br></span>')
+                self.assertEqual(caught.exception.code, "nonempty_placeholder")
+            with self.subTest(rule=rule, case="empty"):
+                result = interpret_html(f'before<span data-lfw-synthetic-rule="{rule}"></span>after')
+                self.assertEqual(result.correction_text, "beforeafter")
+                self.assertTrue(result.has_recognized_markup)
+
     def test_case_and_other_unverified_rules_block(self) -> None:
         for rule in ("case", "spelling", "word-form", "word-replacement", "insert-word", "undo-reset"):
             with self.subTest(rule=rule):

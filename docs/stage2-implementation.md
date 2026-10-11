@@ -29,6 +29,12 @@ All signatures below use the hypothetical `data-lfw-synthetic-rule` test attribu
 
 Plain text and attribute-free `p`, `div`, `br`, `span`, `strong`, `em`, `b` and `i` are supported. Entities are decoded once. Literal source newlines and U+2060 are preserved. `<br>` produces one newline; paragraph transitions produce two. These facts remain distinct, so a trailing `<br>`, a paragraph transition and a literal source newline can intentionally produce three newlines. Rendered visible text and correction-target text remain separate internal values and are never added to the seven-field export.
 
+### Review corrections
+
+- Pending `HTMLParser` input is checked before `close()` can reinterpret it as text. Truncated terminal tags, comments, declarations and entities now block as `malformed_html`; correctly encoded `&lt;` remains student text.
+- Empty-only insertion and punctuation placeholders reject any child markup, including `<br>`, as `nonempty_placeholder`. Genuinely empty placeholders remain supported.
+- Byte-empty source HTML and structurally empty correction targets block as `missing_student_html`. No trimming is performed: genuine whitespace, literal newlines and supported paragraph/break formatting remain unchanged when nonempty.
+
 ## Validation
 
 Run:
@@ -40,7 +46,7 @@ python -m unittest discover -s tests -v
 python -m compileall -q src tests
 ```
 
-The Stage 1 suite remains included. Stage 2 adds synthetic chronology, long-chain, structured-blocking, tag-before-cleaning, exact-text, unsupported-Case, timestamp propagation, seven-field and no-blocked-export coverage. The complete local suite currently contains 32 passing tests.
+The Stage 1 suite remains included. Stage 2 adds synthetic chronology, long-chain, structured-blocking, tag-before-cleaning, exact-text, unsupported-Case, timestamp propagation, seven-field and no-blocked-export coverage. After the parser review corrections, the complete local suite contains 35 passing tests.
 
 ## Unresolved gates and exact next action
 

@@ -128,13 +128,18 @@ def interpret_task(task: NormalizedWritingTask) -> InterpretationDecision:
             ReasonCode.LATEST_STATE_TEACHER,
             "The latest student submission has a later teacher review",
         )
-    if latest.source_html is None:
+    if latest.source_html is None or latest.source_html == "":
         return _blocked(ReasonCode.MISSING_STUDENT_HTML, "Latest student state has no source HTML")
 
     try:
         markup = interpret_html(latest.source_html)
     except MarkupBlocked as error:
         return _blocked(ReasonCode.UNSUPPORTED_MARKUP, f"{error.code}: {error.detail}")
+    if markup.correction_text == "":
+        return _blocked(
+            ReasonCode.MISSING_STUDENT_HTML,
+            "Latest student source contains no correction-target content",
+        )
 
     if len(task.states) == 1:
         if markup.has_recognized_markup:

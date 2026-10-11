@@ -153,6 +153,21 @@ class InterpretationTests(unittest.TestCase):
         self.assertEqual(decision.kind, DecisionKind.BLOCKED)
         self.assertEqual(decision.reason, ReasonCode.MARKUP_WITHOUT_REVIEW)
 
+    def test_empty_sources_block_without_trimming_legitimate_whitespace(self) -> None:
+        for source in ("", "<p></p>"):
+            with self.subTest(source=source):
+                decision = interpret_task(task(state(0, Actor.STUDENT, source)))
+                self.assertEqual(decision.kind, DecisionKind.BLOCKED)
+                self.assertEqual(decision.reason, ReasonCode.MISSING_STUDENT_HTML)
+
+        whitespace = interpret_task(task(state(0, Actor.STUDENT, " \t\n")))
+        self.assertEqual(whitespace.kind, DecisionKind.CANDIDATE)
+        self.assertEqual(whitespace.record.writing, " \t\n")
+
+        formatted = interpret_task(task(state(0, Actor.STUDENT, "<p> \n<br></p>")))
+        self.assertEqual(formatted.kind, DecisionKind.CANDIDATE)
+        self.assertEqual(formatted.record.writing, " \n\n")
+
     def test_unsupported_case_markup_blocks_without_guessing(self) -> None:
         decision = interpret_task(
             task(
