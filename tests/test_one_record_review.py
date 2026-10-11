@@ -122,11 +122,11 @@ class GateBReviewTests(unittest.TestCase):
                 "D3A", "Test Student", "TEST-000", "Practice Narrative", "Retelling", "YES", "YES",
             ])
             def ask(prompt: str) -> str:
-                if prompt.startswith("Write ONE"):
-                    raise AssertionError("Must not prompt for export once source changed")
                 if "Optional:" in prompt:
-                    page.elements[6].html = "<p>Site changed after review.</p>"
                     return str(path)
+                if prompt.startswith("Write ONE"):
+                    page.elements[6].html = "<p>Site changed at final confirmation.</p>"
+                    return "EXPORT"
                 return next(answers)
             with self.assertRaisesRegex(LocalBlock, "source_changed_since_review"):
                 review_browser(FakeBrowser([page]), ask=ask, emit=lambda _: None)
