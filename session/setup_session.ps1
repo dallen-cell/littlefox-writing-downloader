@@ -2,11 +2,19 @@ param(
     # Used only for offline Windows CI or an explicit local Python selection.
     # Normal session users can continue to run setup_session.cmd unchanged.
     [string]$PythonExecutable = "",
-    [switch]$NonInteractive
+    [switch]$NonInteractive,
+    [switch]$ForceBootstrap,
+    [string]$BootstrapTarget = ""
 )
 
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
+if ($ForceBootstrap -and $PythonExecutable) {
+    throw "Cannot combine -ForceBootstrap with -PythonExecutable"
+}
+if ($BootstrapTarget -and -not $ForceBootstrap) {
+    throw "-BootstrapTarget is only valid with -ForceBootstrap"
+}
 
 Write-Host ""
 Write-Host "Little Fox Writing - session computer setup"
@@ -25,7 +33,7 @@ $known = @(
     "$env:LOCALAPPDATA\Programs\Python\Python313\python.exe",
     "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe"
 )
-if (-not $python) {
+if (-not $python -and -not $ForceBootstrap) {
     foreach ($candidate in $known) {
         if (Test-Path $candidate) { $python = $candidate; break }
     }
@@ -35,13 +43,31 @@ if (-not $python) {
     Write-Host "Installing Python 3.13.15 for the current user (no administrator account)..."
     $installer = Join-Path $env:TEMP "python-3.13.15-amd64.exe"
     Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.13.15/python-3.13.15-amd64.exe" -OutFile $installer
-    $proc = Start-Process -FilePath $installer -ArgumentList @(
-        "/quiet", "InstallAllUsers=0", "PrependPath=1",
-        "Include_launcher=0", "Include_test=0"
-    ) -Wait -PassThru
+
+    # Pinned Python.org 3.13.15 Windows 64-bit SHA-256 (official release page).
+    $expectedHash = "edec09c4853aeae9ac36efb8c9f95b6b8e2fee65eee56d9767a8b7c69c574403"
+    $actualHash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($actualHash -ne $expectedHash) {
+        throw "Python installer checksum verification failed"
+    }
+
+    $target = if ($BootstrapTarget) {
+        [System.IO.Path]::GetFullPath($BootstrapTarget)
+    } else {
+        Join-Path $env:LOCALAPPDATA "Programs\Python\Python313"
+    }
+    New-Item -ItemType Directory -Force -Path $target | Out-Null
+    $arguments = @(
+        "/quiet", "InstallAllUsers=0", "PrependPath=0",
+        "Include_launcher=0", "Include_test=0",
+        "TargetDir=`"$target`""
+    )
+    $proc = Start-Process -FilePath $installer -ArgumentList $arguments -Wait -PassThru
     if ($proc.ExitCode -ne 0) { throw "Python installer returned exit code $($proc.ExitCode)" }
-    $python = "$env:LOCALAPPDATA\Programs\Python\Python313\python.exe"
-    if (-not (Test-Path $python)) { throw "Python installed but expected user-local executable is missing" }
+    $python = Join-Path $target "python.exe"
+    if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
+        throw "Python installer completed without the required user-local executable"
+    }
 }
 
 Write-Host "Using Python:"
