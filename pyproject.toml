@@ -20,6 +20,7 @@ probe = ["playwright>=1.48,<2"]
 [project.scripts]
 littlefox-writing = "littlefox_writing.cli:main"
 littlefox-one-record-probe = "littlefox_writing.one_record_probe:main"
+littlefox-one-record-review = "littlefox_writing.one_record_review:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
