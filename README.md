@@ -52,3 +52,10 @@ The package also contains an offline-only normalized state interpreter and conse
 ## One-record local validation probe
 
 The optional [one-record probe runbook](docs/one-record-probe.md) describes the separately run, human-controlled Windows session-computer preflight. The probe attaches only to loopback CDP and reads one manually opened detail tab without navigation or mutation. It intentionally blocks interpretation and export until actual actor, metadata and markup evidence is reviewed.
+
+
+## Resettable Windows session-computer distribution
+
+**The standard delivery format is a separate session ZIP**, based on the established Recordings package model; this is not tied to a school PC. CI creates `LittleFoxWritingSession_Current.zip` as a Windows job artifact. It includes `setup_session.cmd`, `setup_session.ps1`, `run_one_record_probe.cmd`, the Writing package, and `README_SESSION.txt`. Unzip locally, run setup once for the current session, then use the launcher. The bootstrap mirrors the Recordings distribution: user-local Python 3.13.15 if needed, local `.venv`, pinned Playwright, and a dedicated local Chrome debugging profile.
+
+The **current** session ZIP launches only the authorised one-record read-only probe; it cannot download or grade student Writing. No credentials, Chrome profiles or operational exports are included in the archive. The session distribution can be rebuilt from source via `python tools/build_session_package.py`. The eventual full Writing downloader will need its own validated session-computer launcher and packaging without copying Recordings-specific extraction logic.
