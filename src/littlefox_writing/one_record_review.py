@@ -141,7 +141,10 @@ def review_browser(
     ):
         raise LocalBlock("text_not_human_verified")
     if output is None:
-        return {"outcome": "preview_verified_no_file", "export_created": False}
+        destination = ask("Optional: enter a NEW local .txt path to export, or press Enter for preview only: ").strip()
+        if not destination:
+            return {"outcome": "preview_verified_no_file", "export_created": False}
+        output = Path(destination)
     if output.suffix.lower() != ".txt":
         raise LocalBlock("output_must_be_txt")
 
