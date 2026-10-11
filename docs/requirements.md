@@ -69,7 +69,7 @@ No authenticated site testing is authorised during Stages 1 or 2.
 ## Development-stage gates
 Stage 1: Completed and merged. Pure filters, CLI, seven-field formatter, synthetic ZIP, errors and Linux/Windows CI.
 Stage 2: Authorised for **offline-only** normalized state chronology, outstanding classification and conservative markup/text rules with synthetic fixtures; use `docs/stage2-handoff.md`. Actual site actor encodings and markup signatures still require later validation and must not be invented.
-Stage 3: A **single human-controlled, read-only, manually opened Writing record probe** is authorised. Broader live adapter, automated class discovery and class-wide retrieval remain unauthorised; see `docs/one-record-validation.md`.
+Stage 3: Gate A read-only one-record Chrome/CDP acquisition passed on 2026-10-11. The user has separately directed work on Gate B: a **single human-guided, read-only, manually opened Writing-record interpretation and optional seven-field local TXT**, with explicit actor, outstanding-status, metadata and exact-text checks. Current adapter is experimental/offline-tested, not live-accepted. Unverified source semantics must block. Automated class discovery, multi-record acquisition and Stage 4 remain unauthorised; see `docs/one-record-validation.md` and `docs/one-record-gate-b.md`.
 Stage 4: Not authorised — controlled multi-class live validation.
 
 ## Release criteria
