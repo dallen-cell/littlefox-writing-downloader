@@ -30,14 +30,14 @@ class SessionDistributionTests(unittest.TestCase):
                     "setup_session.ps1", "run_one_record_probe.cmd", "run_one_record_review.cmd",
                     "pyproject.toml", "README.md",
                     "src/littlefox_writing/one_record_probe.py",
-                    "docs/one-record-probe.md",
+                    "docs/one-record-probe.md", "docs/one-record-gate-b.md",
                 ):
                     self.assertIn(necessary, names)
                 self.assertTrue(all(
                     name in {
                         "README_SESSION.txt", "setup_session.cmd", "setup_session.ps1",
                         "run_one_record_probe.cmd", "run_one_record_review.cmd", "pyproject.toml", "README.md",
-                        "docs/one-record-probe.md",
+                        "docs/one-record-probe.md", "docs/one-record-gate-b.md",
                     } or name.startswith("src/littlefox_writing/") and name.endswith(".py")
                     for name in names
                 ))
