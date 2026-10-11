@@ -136,12 +136,30 @@ class OneRecordProbeTests(unittest.TestCase):
         self.assertNotIn("taylor-person", serialized)
         self.assertNotIn("private synthetic text", serialized)
 
-    def test_missing_mismatched_and_multiple_pages_block(self) -> None:
+    def test_main_page_and_writing_popup_are_supported(self) -> None:
+        main_page = FakePage([])
+        popup_page = detail_page()
+        report = inspect_browser(FakeBrowser([main_page, popup_page]))
+        self.assertTrue(report.attach_succeeded)
+        self.assertEqual(report.matching_pages, 1)
+        self.assertEqual(report.source_state_count, 2)
+        self.assertTrue(report.writer_fields_complete)
+        self.assertTrue(report.timestamp_fields_complete)
+        self.assertTrue(report.source_html_complete)
+        self.assertEqual(main_page.actions, [])
+        self.assertEqual(popup_page.actions, [])
+        for secret in ("Student secret text", "synthetic-writer-value"):
+            self.assertNotIn(secret, report.sanitized_json())
+
+    def test_missing_mismatched_and_multiple_detail_popups_block(self) -> None:
+        empty = inspect_browser(FakeBrowser([]))
+        self.assertEqual(empty.blockers, ("no_open_page",))
         no_match = inspect_browser(FakeBrowser([FakePage([])]))
         self.assertEqual(no_match.blockers, ("no_matching_detail_page",))
-        multiple = inspect_browser(FakeBrowser([detail_page(), detail_page()]))
-        self.assertEqual(multiple.blockers, ("multiple_open_pages",))
-        self.assertEqual(multiple.matching_pages, 0)
+        multiple = inspect_browser(FakeBrowser([FakePage([]), detail_page(), detail_page()]))
+        self.assertEqual(multiple.blockers, ("multiple_matching_detail_pages",))
+        self.assertEqual(multiple.matching_pages, 2)
+        self.assertEqual(multiple.source_state_count, 0)
 
         mismatched = FakePage(
             [
