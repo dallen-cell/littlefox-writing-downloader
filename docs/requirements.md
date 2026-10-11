@@ -1,9 +1,9 @@
 # Little Fox Writing Downloader — Python v1 requirements
 
-Status: **Design approved 2026-10-11**. Stage 1 offline foundation is merged and Linux/Windows CI-validated. On 2026-10-11, the user additionally authorised **Stage 2 offline state/markup implementation only**. Actual Little Fox access, browser/CDP integration and later live testing require separate approval. Stage 2 handoff: `docs/stage2-handoff.md`.
+Status: **Design approved 2026-10-11**. Stages 1–2 offline development are merged and Linux/Windows CI-validated. A separate narrow approval permits one human-controlled read-only local Chrome/CDP probe against one manually opened Writing detail page; broader acquisition, class discovery and Stage 4 are not authorised. Current handoff: `docs/one-record-validation.md`.
 
 ## Goal
-Discover latest outstanding student Writing submissions, export clean text for **human-led correction**, and **never** modify Little Fox. Initial execution target is a school session PC with human-authenticated Chrome and local Python/Playwright CDP attachment. The implementation begins in Codex Cloud using **offline synthetic tests only**.
+Discover latest outstanding student Writing submissions, export clean text for **human-led correction**, and **never** modify Little Fox. Execution target is **any suitable Windows session computer**, including resettable machines used for the Recordings downloader, with human-authenticated Chrome and local Python/Playwright CDP attachment. There is no dependency on a particular school computer. The implementation begins in Codex Cloud using **offline synthetic tests only**.
 
 ## Correction output: exactly seven fields
 Each exported UTF-8 `.txt` must have:
@@ -51,6 +51,12 @@ Use the **latest student submission's** timestamp, not task creation date or tea
 
 No authenticated site testing is authorised during Stages 1 or 2.
 
+## Portability and session-computer deployment
+- Treat disposable/resetting Windows session computers as the primary supported environment, not a single named school computer. Local profiles, Python installations and packages may be absent each visit.
+- The eventual launcher/setup must be repeatable without assuming administrator rights, persistent machine state, or preinstalled Python/Playwright. Verify a portable runtime or bounded per-session bootstrap that can be launched from a user-controlled working folder; reuse verified practices from the established Recordings downloader rather than inventing a parallel installer.
+- Chrome sign-in remains manual and local, and any debugging profile is session-scoped. Neither authentication state nor sensitive student output can depend on machine persistence. Save operational exports to a user-selected suitable destination.
+- Current `py -3.11`/pip/virtualenv instructions are provisional probe instructions, **not proof** of an acceptable final session-computer installation. Portability acceptance requires testing on a resetting Windows session environment.
+
 ## Launcher, archive and error handling
 - Minimal command-line or text-menu interaction, plus a simple Windows launcher; no custom web GUI.
 - Offer preview/dry-run and explicit confirmation before creating the batch.
@@ -63,7 +69,7 @@ No authenticated site testing is authorised during Stages 1 or 2.
 ## Development-stage gates
 Stage 1: Completed and merged. Pure filters, CLI, seven-field formatter, synthetic ZIP, errors and Linux/Windows CI.
 Stage 2: Authorised for **offline-only** normalized state chronology, outstanding classification and conservative markup/text rules with synthetic fixtures; use `docs/stage2-handoff.md`. Actual site actor encodings and markup signatures still require later validation and must not be invented.
-Stage 3: Not authorised — human-authenticated local Chrome/CDP integration and representative live read-only verification.
+Stage 3: A **single human-controlled, read-only, manually opened Writing record probe** is authorised. Broader live adapter, automated class discovery and class-wide retrieval remain unauthorised; see `docs/one-record-validation.md`.
 Stage 4: Not authorised — controlled multi-class live validation.
 
 ## Release criteria
@@ -73,3 +79,9 @@ Live acceptance gates, requiring separately authorised validation: complete curr
 - [Approved full design and acceptance criteria](https://docs.google.com/document/d/1bZK24qxZ3d8e-8xYX93jfQ4FOHqh2DAbcm9EbR6aRxs/edit)
 - [Little Fox Writing technical map](https://docs.google.com/document/d/1_MIinu-WsJc0FVI4mGMae8UYFWMBuRj7coxmSm6t8c4/edit)
 - [Recordings baseline, preserved ZIP](https://drive.google.com/file/d/1JVJulnvU6PxZdsoL3IgeHJgZjkcMf1rB/view)
+
+
+## Separate session-computer deliverable (2026-10-11 refinement)
+In addition to GitHub's canonical source, ship a **distinct resettable Windows session-computer distribution** as a versioned ZIP, following the Recordings project's established `LittleFoxRecordingsSession_Current.zip` model. The verified Recordings reference includes per-user Python setup (`setup_session.cmd` + `setup_session.ps1`), creation of a local virtual environment, pinned Playwright, a dedicated Chrome debug profile and a command launcher. Keep the Writing adapter/classification separate; do not import the Recordings collection business logic.
+
+For now, deliver `LittleFoxWritingSession_Current.zip` with this setup pattern and the **one-record probe only**. Before acceptance of the full downloader, produce/update a distinct session-computer operational launcher supporting the approved class/date choices and ZIP export. The general Python repository is not, by itself, sufficient evidence of operational session-computer readiness. Do not include browser profiles, tokens, student files, `.venv`, or other session state in generated ZIPs. Network access for bootstrap is a documented prerequisite when dependencies are absent; never escalate privileges without explicit approval.

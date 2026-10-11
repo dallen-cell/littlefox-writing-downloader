@@ -2,7 +2,10 @@
 
 **Decision: 2026-10-11.** After a proportionality review, freeze the Stage 1–2 synthetic foundation. The next milestone is **one real Writing record**, not comprehensive Writing mapping or another offline parser sprint.
 
-**Scope of authorisation:** prepare a *minimal local* Chrome/CDP read-only probe and, when an authenticated school-PC session is available, conduct **one human-controlled, single-record read-only validation**. Do not operate a live browser from Codex Cloud or ChatGPT, remotely authenticate, change site state, or expand to class-wide crawling. A multi-class downloader, grading and broad data collection are **not authorised**.
+**Scope of authorisation:** prepare a *minimal local* Chrome/CDP read-only probe and, when a human-authenticated Windows session-computer browser session is available, conduct **one human-controlled, single-record read-only validation**. Do not operate a live browser from Codex Cloud or ChatGPT, remotely authenticate, change site state, or expand to class-wide crawling. A multi-class downloader, grading and broad data collection are **not authorised**.
+
+## Execution environment boundary
+The target is a **resettable Windows session computer**, as with the existing Recordings downloader; no specific school PC, fixed workstation or persistent local account is required. The present manual Python/virtualenv/Chrome instructions demonstrate only an initial local probe and do **not** satisfy final portability. Plan reuse of the proven Recordings session-launch approach, and validate absence of prerequisites or their safe per-session bootstrap when practical. This is not permission for new framework/infrastructure work before the one-record acquisition result.
 
 ## Why this is the priority
 GitHub source, Stage 1 formatter/ZIP/filter and Stage 2 synthetic state/markup model exist; Linux and Windows CI pass. The missing critical proof is acquisition and interpretation of **actual** Little Fox source. Synthetic `data-lfw-synthetic-rule` annotations are **not** observed website markup; stop refining invented examples until evidence exists.

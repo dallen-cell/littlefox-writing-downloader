@@ -5,7 +5,7 @@ Read-only Python downloader for outstanding student Writing submissions, intende
 ## Status
 - Design: approved 2026-10-11.
 - Implementation: **Stages 1–2 offline complete and CI-tested on Linux/Windows.** Next: narrowly authorised, human-controlled local read-only acquisition proof for **one manually opened Writing record**. No full live downloader or multi-class operation yet.
-- Source of truth for code: this private GitHub repository.
+- Source of truth for code: this public GitHub repository.
 - Site Map research and approved design: [Google Drive design](https://docs.google.com/document/d/1bZK24qxZ3d8e-8xYX93jfQ4FOHqh2DAbcm9EbR6aRxs/edit).
 
 ## Read first
@@ -16,7 +16,9 @@ Read-only Python downloader for outstanding student Writing submissions, intende
 - [docs/stage1-handoff.md](docs/stage1-handoff.md) — historical completed Stage 1 instructions.
 
 ## How development works
-Use the existing Codex Cloud environment and work on a reviewable branch. Offline synthetic tests first. Keep real student submissions, identifiers, browser credentials and session state out of GitHub. Later authorised live tests will run with a human-authenticated school Chrome session through local Python/CDP. Do not claim a working live downloader until that separate validation is complete.
+Use the existing Codex Cloud environment and work on a reviewable branch. Offline synthetic tests first. Keep real student submissions, identifiers, browser credentials and session state out of GitHub. Later authorised live tests will run with a human-authenticated Chrome session on a suitable Windows session computer through local Python/CDP. Do not claim a working live downloader until that separate validation is complete.
+
+**Deployment requirement:** Work on resettable/disposable Windows session computers, not a specific school PC. Reuse the proven Recordings downloader's session setup/launcher where feasible. Do not assume permanent Python/Playwright installations, admin rights, or saved Chrome login state. The manual setup described today is only a first diagnostic, not the accepted end-user delivery workflow.
 
 The existing Recordings downloader is a reference, preserved separately in Drive. Its working source should not be overwritten.
 
@@ -49,4 +51,11 @@ The package also contains an offline-only normalized state interpreter and conse
 
 ## One-record local validation probe
 
-The optional [one-record probe runbook](docs/one-record-probe.md) describes the separately run, human-controlled school-PC preflight. The probe attaches only to loopback CDP and reads one manually opened detail tab without navigation or mutation. It intentionally blocks interpretation and export until actual actor, metadata and markup evidence is reviewed.
+The optional [one-record probe runbook](docs/one-record-probe.md) describes the separately run, human-controlled Windows session-computer preflight. The probe attaches only to loopback CDP and reads one manually opened detail tab without navigation or mutation. It intentionally blocks interpretation and export until actual actor, metadata and markup evidence is reviewed.
+
+
+## Resettable Windows session-computer distribution
+
+**The standard delivery format is a separate session ZIP**, based on the established Recordings package model; this is not tied to a school PC. CI creates `LittleFoxWritingSession_Current.zip` as a Windows job artifact. It includes `setup_session.cmd`, `setup_session.ps1`, `run_one_record_probe.cmd`, the Writing package, and `README_SESSION.txt`. Unzip locally, run setup once for the current session, then use the launcher. The bootstrap mirrors the Recordings distribution: user-local Python 3.13.15 if needed, local `.venv`, pinned Playwright, and a dedicated local Chrome debugging profile.
+
+The **current** session ZIP launches only the authorised one-record read-only probe; it cannot download or grade student Writing. No credentials, Chrome profiles or operational exports are included in the archive. The session distribution can be rebuilt from source via `python tools/build_session_package.py`. The eventual full Writing downloader will need its own validated session-computer launcher and packaging without copying Recordings-specific extraction logic.

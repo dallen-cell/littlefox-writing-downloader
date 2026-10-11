@@ -3,9 +3,14 @@
 ## Project and current authorisation
 Develop a **read-only Python downloader** for outstanding student Writing in the authenticated Little Fox manager website.
 
-**Current approved boundaries (2026-10-11):** Stages 1 and 2 are completed offline; **one tightly bounded Stage 3 read-only local Writing-record validation** is approved following the proportionality review. Codex Cloud may develop a small local CDP probe with synthetic tests, but must **not** access a live Little Fox session itself. A human at the school PC can later test one manually opened, authenticated Writing detail page with read-only DOM access only. Class-wide collection, Stage 4 and website mutations remain unauthorised.
+**Current approved boundaries (2026-10-11):** Stages 1 and 2 are completed offline; **one tightly bounded Stage 3 read-only local Writing-record validation** is approved following the proportionality review. Codex Cloud may develop a small local CDP probe with synthetic tests, but must **not** access a live Little Fox session itself. A human on a suitable Windows session computer can later test one manually opened, authenticated Writing detail page with read-only DOM access only. Class-wide collection, Stage 4 and website mutations remain unauthorised.
 
 Read `docs/requirements.md` and **current** `docs/one-record-validation.md` before further coding. Previous `docs/stage1-handoff.md` and `docs/stage2-handoff.md` describe completed offline stages. These are the code contract; the Google Drive Little Fox Site Map remains the authoritative technical research record.
+
+## Portable session-computer requirement
+- **Deployment target is any suitable Windows session computer**, not a named school machine. Assume user profiles and locally installed tools may be reset/removed between visits; do not depend on machine-specific paths, permanent installs, administrator privileges or persistent authentication.
+- Reuse the established Recordings project's proven session bootstrap/launcher where appropriate after inspecting it. Avoid imposing a new installer or repeated setup burden merely because the development machine has Python.
+- The current Python 3.11/virtualenv/manual Chrome commands are an **interim probe procedure**, not evidence that the final session-computer workflow is usable. Before release, verify a portable or reliably bootstrapped launcher on a resetting Windows session environment. Do not assume that Python or Playwright is preinstalled.
 
 ## Safety and data
 - Never grade, comment, review, submit, evaluate, save, delete, alter statuses, award stickers, complete lessons, or use any site write controls.
