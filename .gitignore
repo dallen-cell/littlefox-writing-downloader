@@ -1,0 +1,51 @@
+# Python output and environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Secrets, credentials, private environment settings
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*secret*
+*credential*
+
+# Operational student information and authenticated browser state
+/data/
+/output/
+/outputs/
+/downloads/
+/captures/
+/private/
+/restricted/
+/chrome-profile/
+/session-profile/
+/playwright-report/
+/test-results/
+*.har
+*.mhtml
+*.webarchive
+*.warc
+*.sqlite
+*.db
+*.log
+
+# User-specific IDE/OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
