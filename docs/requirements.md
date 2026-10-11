@@ -1,6 +1,6 @@
 # Little Fox Writing Downloader — Python v1 requirements
 
-Status: **Design approved 2026-10-11**. Stage 1 offline foundation is merged and Linux/Windows CI-validated. On 2026-10-11, the user additionally authorised **Stage 2 offline state/markup implementation only**. Actual Little Fox access, browser/CDP integration and later live testing require separate approval. Stage 2 handoff: `docs/stage2-handoff.md`.
+Status: **Design approved 2026-10-11**. Stages 1–2 offline development are merged and Linux/Windows CI-validated. A separate narrow approval permits one human-controlled read-only local Chrome/CDP probe against one manually opened Writing detail page; broader acquisition, class discovery and Stage 4 are not authorised. Current handoff: `docs/one-record-validation.md`.
 
 ## Goal
 Discover latest outstanding student Writing submissions, export clean text for **human-led correction**, and **never** modify Little Fox. Execution target is **any suitable Windows session computer**, including resettable machines used for the Recordings downloader, with human-authenticated Chrome and local Python/Playwright CDP attachment. There is no dependency on a particular school computer. The implementation begins in Codex Cloud using **offline synthetic tests only**.
