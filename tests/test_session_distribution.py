@@ -28,16 +28,20 @@ class SessionDistributionTests(unittest.TestCase):
                 for necessary in (
                     "README_SESSION.txt", "setup_session.cmd",
                     "setup_session.ps1", "run_one_record_probe.cmd", "run_one_record_review.cmd",
+                    "run_one_class_dry_run.cmd",
                     "pyproject.toml", "README.md",
                     "src/littlefox_writing/one_record_probe.py",
                     "docs/one-record-probe.md", "docs/one-record-gate-b.md",
+                    "docs/automatic-acquisition.md",
                 ):
                     self.assertIn(necessary, names)
                 self.assertTrue(all(
                     name in {
                         "README_SESSION.txt", "setup_session.cmd", "setup_session.ps1",
                         "run_one_record_probe.cmd", "run_one_record_review.cmd", "pyproject.toml", "README.md",
+                        "run_one_class_dry_run.cmd",
                         "docs/one-record-probe.md", "docs/one-record-gate-b.md",
+                        "docs/automatic-acquisition.md",
                     } or name.startswith("src/littlefox_writing/") and name.endswith(".py")
                     for name in names
                 ))
@@ -50,6 +54,10 @@ class SessionDistributionTests(unittest.TestCase):
                 self.assertIn("playwright==1.62.0", archive.read("setup_session.ps1").decode())
                 self.assertIn("--remote-debugging-port=9222", archive.read("run_one_record_probe.cmd").decode())
                 self.assertIn("littlefox-one-record-review.exe", archive.read("run_one_record_review.cmd").decode())
+                dry_run = archive.read("run_one_class_dry_run.cmd").decode()
+                self.assertIn("littlefox-one-class-dry-run.exe", dry_run)
+                self.assertIn("--class-code", dry_run)
+                self.assertNotIn("--output", dry_run)
                 self.assertIn("https://school.littlefox.co.kr/main/", archive.read("run_one_record_probe.cmd").decode())
                 self.assertNotIn("about:blank", archive.read("run_one_record_probe.cmd").decode())
 
