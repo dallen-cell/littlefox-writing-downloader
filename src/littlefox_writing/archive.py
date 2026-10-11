@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from collections import defaultdict
 from pathlib import Path, PurePosixPath
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
@@ -28,18 +27,33 @@ def safe_component(value: str, fallback: str = "untitled") -> str:
 
 
 def archive_names(records: tuple[SyntheticRecord, ...]) -> dict[str, str]:
-    """Assign stable paths; record IDs make ordering deterministic."""
+    """Assign stable paths that remain unique on case-insensitive Windows."""
     names: dict[str, str] = {}
-    seen: dict[tuple[str, str], int] = defaultdict(int)
-    for record in sorted(records, key=lambda item: (item.class_code, item.student_name, item.title, item.record_id)):
+    used_paths: set[str] = set()
+    ordered = sorted(
+        records,
+        key=lambda item: (
+            item.class_code.casefold(),
+            item.student_code.casefold(),
+            item.title.casefold(),
+            item.record_id,
+        ),
+    )
+    for record in ordered:
         if record.record_id in names:
             raise ValueError(f"Duplicate record identity: {record.record_id}")
         folder = safe_component(record.class_code, "class")
-        stem = safe_component(f"{record.student_name} - {record.title}")
-        key = (folder.casefold(), stem.casefold())
-        seen[key] += 1
-        suffix = "" if seen[key] == 1 else f" ({seen[key]})"
-        names[record.record_id] = str(PurePosixPath(folder, f"{stem}{suffix}.txt"))
+        stem = safe_component(f"{record.student_code} - {record.title}")
+        suffix_number = 1
+        while True:
+            suffix = "" if suffix_number == 1 else f" ({suffix_number})"
+            path = str(PurePosixPath(folder, f"{stem}{suffix}.txt"))
+            windows_key = path.casefold()
+            if windows_key not in used_paths:
+                used_paths.add(windows_key)
+                names[record.record_id] = path
+                break
+            suffix_number += 1
     return names
 
 

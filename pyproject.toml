@@ -9,7 +9,12 @@ description = "Offline foundation for exporting synthetic Little Fox Writing rec
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "Proprietary"}
-dependencies = []
+dependencies = [
+    "tzdata>=2024.1; platform_system == 'Windows'",
+]
+
+[project.optional-dependencies]
+test = ["tzdata>=2024.1"]
 
 [project.scripts]
 littlefox-writing = "littlefox_writing.cli:main"

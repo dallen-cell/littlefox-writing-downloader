@@ -8,9 +8,12 @@ Open Command Prompt in the repository and run:
 
 ```bat
 py -3.11 -m venv .venv
-.venv\Scripts\python -m pip install --no-deps -e .
+.venv\Scripts\python -m pip install --upgrade pip
+.venv\Scripts\python -m pip install -e ".[test]"
 .venv\Scripts\python -m unittest discover -s tests -v
 ```
+
+The normal Windows installation (`pip install -e .`) installs the first-party `tzdata` package because Windows does not normally provide the IANA timezone database used by Python's `zoneinfo`. The `[test]` extra above also installs `tzdata` on non-Windows development machines so the fallback can be tested with the system timezone database disabled. Do not use `--no-deps`; that would omit required Windows timezone data.
 
 Preview a synthetic export (no ZIP is written):
 

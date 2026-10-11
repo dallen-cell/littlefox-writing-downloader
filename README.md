@@ -20,10 +20,10 @@ The existing Recordings downloader is a reference, preserved separately in Drive
 
 ## Stage 1 offline demo
 
-Python 3.11 or newer is required. Install the local package without dependencies:
+Python 3.11 or newer is required. Install the local package and its test extra:
 
 ```bash
-python -m pip install --no-deps -e .
+python -m pip install -e ".[test]"
 python -m unittest discover -s tests -v
 ```
 

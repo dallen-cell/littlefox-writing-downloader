@@ -6,7 +6,13 @@ No Little Fox access, browser automation, real identifiers, or real student data
 
 ## Validation
 
-The editable package was installed with `python -m pip install --no-deps -e .`. The offline suite runs with `python -m unittest discover -s tests -v`; all 13 Stage 1 tests passed during implementation. The installed CLI help, preview-only flow, confirmed synthetic ZIP creation, UTF-8 contents, and overwrite refusal were also exercised.
+The editable package and test dependency were installed with `python -m pip install -e ".[test]"`. The offline suite runs with `python -m unittest discover -s tests -v`; all 16 Stage 1 tests passed after review fixes. The installed CLI help, preview-only flow, confirmed synthetic ZIP creation, UTF-8 contents, and overwrite refusal were also exercised. The `tzdata` fallback was tested with `PYTHONTZPATH` empty, proving `Asia/Seoul` remains available without a system IANA database.
+
+## Stage 1 review fixes
+
+- ZIP filenames now follow the approved `student code - task title.txt` convention; student display names remain only in the exact seven-field file contents.
+- Allocation reserves each complete archive path using a case-folded Windows-equivalent key. It checks generated candidates until unused, including collisions with natural `(2)` suffixes and class/file casing differences.
+- Windows runtime installs the first-party `tzdata` package conditionally. The test extra installs it on every development platform so the no-system-database fallback is covered offline.
 
 ## Known limitations and exact Stage 2 boundary
 
