@@ -3,9 +3,9 @@
 ## Project and current authorisation
 Develop a **read-only Python downloader** for outstanding student Writing in the authenticated Little Fox manager website.
 
-**Approved as of 2026-10-11: Stages 1 and 2 OFFLINE ONLY.** Stage 1 is merged and independently CI-tested; Stage 2 authorises Python state/markup parsing and synthetic regression tests. You may **not** sign in to Little Fox, perform live browser/CDP/site access, acquire real submissions, implement the authenticated adapter, or proceed to Stages 3–4 without separate authorisation. Do not confuse offline development approval with live integration authority.
+**Current approved boundaries (2026-10-11):** Stages 1 and 2 are completed offline; **one tightly bounded Stage 3 read-only local Writing-record validation** is approved following the proportionality review. Codex Cloud may develop a small local CDP probe with synthetic tests, but must **not** access a live Little Fox session itself. A human at the school PC can later test one manually opened, authenticated Writing detail page with read-only DOM access only. Class-wide collection, Stage 4 and website mutations remain unauthorised.
 
-Read `docs/requirements.md` and the **current** `docs/stage2-handoff.md` before Stage 2 work; `docs/stage1-handoff.md` is the completed historical Stage 1 task. These are the code contract; the Google Drive Little Fox Site Map remains the authoritative technical research record.
+Read `docs/requirements.md` and **current** `docs/one-record-validation.md` before further coding. Previous `docs/stage1-handoff.md` and `docs/stage2-handoff.md` describe completed offline stages. These are the code contract; the Google Drive Little Fox Site Map remains the authoritative technical research record.
 
 ## Safety and data
 - Never grade, comment, review, submit, evaluate, save, delete, alter statuses, award stickers, complete lessons, or use any site write controls.
@@ -19,7 +19,7 @@ Read `docs/requirements.md` and the **current** `docs/stage2-handoff.md` before 
 - Respect the agreed seven output fields **exactly**, including Initial / Revision — Tagged / Revision — Clean. Do not insert dates, prompts, teacher feedback, metadata or history into the correction text.
 - Separate browser acquisition, queue classification, text-cleaning rules, filter logic and output generation.
 - Fail explicitly on ambiguous or unsupported status, date or semantic correction markup; do not silently lose student text or claim incomplete scans are empty.
-- During Stage 2, implement only offline source-state interpretation and conservative markup cleaning from synthetic fixtures; **never open Little Fox**. Do not add a live browser connector or assume undocumented site-side markup semantics.
+- Next priority: a minimal local read-only CDP probe of **one human-opened Writing detail page**, not further synthetic parser expansion. Codex Cloud prepares the probe offline; actual site access occurs only when a human runs it locally. A failed acquisition gate must stop with a sanitized diagnostic, not trigger speculative code or broader crawling.
 
 ## Git and handoff discipline
 - **GitHub is canonical for source and tests**; Google Drive is canonical for Site Map records and approved design. Do not maintain competing authoritative source archives.
