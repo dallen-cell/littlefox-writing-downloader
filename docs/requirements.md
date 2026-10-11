@@ -79,3 +79,9 @@ Live acceptance gates, requiring separately authorised validation: complete curr
 - [Approved full design and acceptance criteria](https://docs.google.com/document/d/1bZK24qxZ3d8e-8xYX93jfQ4FOHqh2DAbcm9EbR6aRxs/edit)
 - [Little Fox Writing technical map](https://docs.google.com/document/d/1_MIinu-WsJc0FVI4mGMae8UYFWMBuRj7coxmSm6t8c4/edit)
 - [Recordings baseline, preserved ZIP](https://drive.google.com/file/d/1JVJulnvU6PxZdsoL3IgeHJgZjkcMf1rB/view)
+
+
+## Separate session-computer deliverable (2026-10-11 refinement)
+In addition to GitHub's canonical source, ship a **distinct resettable Windows session-computer distribution** as a versioned ZIP, following the Recordings project's established `LittleFoxRecordingsSession_Current.zip` model. The verified Recordings reference includes per-user Python setup (`setup_session.cmd` + `setup_session.ps1`), creation of a local virtual environment, pinned Playwright, a dedicated Chrome debug profile and a command launcher. Keep the Writing adapter/classification separate; do not import the Recordings collection business logic.
+
+For now, deliver `LittleFoxWritingSession_Current.zip` with this setup pattern and the **one-record probe only**. Before acceptance of the full downloader, produce/update a distinct session-computer operational launcher supporting the approved class/date choices and ZIP export. The general Python repository is not, by itself, sufficient evidence of operational session-computer readiness. Do not include browser profiles, tokens, student files, `.venv`, or other session state in generated ZIPs. Network access for bootstrap is a documented prerequisite when dependencies are absent; never escalate privileges without explicit approval.
