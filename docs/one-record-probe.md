@@ -1,10 +1,12 @@
 # One-record local CDP probe
 
-This probe is for one human-controlled validation on the school PC. It attaches to an already-running, manually authenticated Chrome debugging session and reads the DOM of one manually opened Writing detail tab. It never navigates, clicks, fills, submits, evaluates work, writes to Little Fox, discovers classes, follows pagination or creates a correction file.
+This probe is for one human-controlled validation on a suitable Windows session computer (resettable/disposable machines are the intended deployment target, not a particular school computer). It attaches to an already-running, manually authenticated Chrome debugging session and reads the DOM of one manually opened Writing detail tab. It never navigates, clicks, fills, submits, evaluates work, writes to Little Fox, discovers classes, follows pagination or creates a correction file.
 
 Do not run it in Codex Cloud. Do not paste full URLs, field values, HTML, Writing text, screenshots or student details into GitHub, chat, logs or shared Drive documents.
 
-## Install on the local Windows PC
+## Provisional local setup for the first probe
+
+This manual recipe assumes `py -3.11` and pip are available **for the current session only**. It is not a portable end-user launcher, and must not be treated as the final deployment solution. If Python, package installation, or Chrome debug flags are unavailable, stop and record that precise environmental obstacle; do not assume the machine has the prerequisite or ask for administrator rights. Before routine release, establish a repeatable, no-admin session bootstrap based on the existing Recordings workflow.
 
 Open Command Prompt in the repository:
 
@@ -34,7 +36,7 @@ If Chrome is installed elsewhere, use its actual local executable path without c
 
 ## Run exactly one read-only preflight
 
-In a second Command Prompt, from the repository:
+In a second Command Prompt, from the session's working directory:
 
 ```bat
 .venv\Scripts\littlefox-one-record-probe.exe --cdp-endpoint http://127.0.0.1:9222
@@ -60,5 +62,5 @@ The offline implementation was validated with the complete 42-test Stage 1â€“2â€
 
 This preflight can prove local CDP attachment, one-page matching, numbered `contents_N` / `writers_N` / `regdate_N` alignment, field presence and aggregate structural counts with no scripted page action. It cannot reveal structural names, or prove real writer-to-actor mappings, timestamp parsing/timezone, metadata selectors, outstanding/reviewed status, actual correction signatures or semantics, cleaned text, the seven fields, or a safe export. Those remain explicit blockers rather than guesses.
 
-Stop after this one command. Do not browse to another record for the probe, rerun across students, or work around a blocker by adding selectors locally. Record only the sanitized JSON and the human's pass/block assessment for review before any next bounded change.
+Stop after this one command. A per-session restart/reinstallation requirement is not evidence of a permanent school-PC dependency. Do not browse to another record for the probe, rerun across students, or work around a blocker by adding selectors locally. Record only the sanitized JSON and the human's pass/block assessment for review before any next bounded change.
 
