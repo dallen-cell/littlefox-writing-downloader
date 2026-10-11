@@ -59,3 +59,18 @@ The optional [one-record probe runbook](docs/one-record-probe.md) describes the 
 **The standard delivery format is a separate session ZIP**, based on the established Recordings package model; this is not tied to a school PC. CI creates `LittleFoxWritingSession_Current.zip` as a Windows job artifact. It includes `setup_session.cmd`, `setup_session.ps1`, `run_one_record_probe.cmd`, the Writing package, and `README_SESSION.txt`. Unzip locally, run setup once for the current session, then use the launcher. The bootstrap mirrors the Recordings distribution: user-local Python 3.13.15 if needed, local `.venv`, pinned Playwright, and a dedicated local Chrome debugging profile.
 
 The **current** session ZIP launches only the authorised one-record read-only probe; it cannot download or grade student Writing. No credentials, Chrome profiles or operational exports are included in the archive. The session distribution can be rebuilt from source via `python tools/build_session_package.py`. The eventual full Writing downloader will need its own validated session-computer launcher and packaging without copying Recordings-specific extraction logic.
+
+## Gate B local human review (experimental)
+
+Gate A **passed on one real authenticated session-computer Writing popup**:
+Chrome attached and the numbered source fields were readable. The next
+separately packaged command, `run_one_record_review.cmd`, is now an
+**offline-tested, human-guided, one-record-only** Gate B adapter. It attaches
+to the existing Chrome profile, never navigates, requires the human to verify
+source actors, latest outstanding state, history title/genre and student/class
+context, and previews text locally. It reuses the Stage 2 interpreter and
+seven-field formatter, failing closed on unsupported real markup. A new local
+TXT can be created only after exact preview confirmation and the word EXPORT.
+No full class downloader, automatic mapping or grading is implemented.
+See [Gate B runbook](docs/one-record-gate-b.md). Do not copy the private local
+review display into chat or any repository.
