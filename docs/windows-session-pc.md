@@ -31,7 +31,7 @@ run-demo.cmd --within 7 --output synthetic-writing.zip --yes
 
 Existing ZIP files are never overwritten. Delete or rename an old *synthetic* export yourself, or choose another output name.
 
-## Planned later-session pattern (not implemented or authorised here)
+## Current scope and separate read-only probe
 
 The narrowly authorised one-record probe uses a human's manually authenticated Chrome session on a suitable Windows session computer and attach local Python/Playwright through a localhost CDP debugging port. Credentials, cookies, student data, and browser profiles must remain outside this repository. Stage 1 has no Playwright dependency and contains no operational browser adapter.
 
