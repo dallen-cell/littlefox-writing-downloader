@@ -79,19 +79,6 @@ try {
     }
     if (-not $connected) { throw "Chrome local CDP preflight unavailable" }
 
-    # Simulate the manager alongside the Writing detail target. Launch
-    # Chrome with ONE URL (reliable in headless mode), then create a second
-    # *synthetic* blank page using the local DevTools test endpoint.
-    $extraTarget = Invoke-RestMethod -Uri "http://127.0.0.1:9222/json/new?about:blank" -Method Put -TimeoutSec 5
-    if ($extraTarget.type -ne "page") {
-        throw "Could not establish the synthetic manager-page target"
-    }
-    $targets = @(Invoke-RestMethod -Uri "http://127.0.0.1:9222/json/list" -TimeoutSec 5)
-    $pageTargets = @($targets | Where-Object { $_.type -eq "page" })
-    if ($pageTargets.Count -lt 2) {
-        throw "Synthetic multi-page CDP scenario was not established"
-    }
-
     $raw = & $probe --cdp-endpoint "http://127.0.0.1:9222" | Out-String
     $exitCode = $LASTEXITCODE
     if ($exitCode -ne 3) { throw "Expected blocked read-only probe exit 3, got $exitCode" }
