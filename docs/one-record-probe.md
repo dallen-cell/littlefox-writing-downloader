@@ -48,17 +48,17 @@ The JSON output contains only:
 - how many open pages matched the three numbered field families;
 - source-state count;
 - whether writer, timestamp and source-HTML fields were nonempty;
-- observed HTML tag and attribute **names**, never values or text;
+- aggregate HTML element and attribute counts, plus the number of source states containing elements; never tag names, attribute names, values or text;
 - sanitized blocker codes; and
 - confirmation that no export was created.
 
-It does not print or save the page URL, writer/timestamp values, source HTML, student Writing, student identity or other seven-field values.
+It does not print or save the page URL, writer/timestamp values, source HTML, student Writing, student identity, tag names, attribute names or other seven-field values. Structural diagnostics are numeric aggregates so even arbitrary person-like element or attribute names cannot enter serialized output.
 
-The offline implementation was validated with the complete 41-test Stage 1–2–probe suite, `pip check`, byte compilation and console-help execution. Tests use synthetic fake pages only; they do not start Chrome or connect to a website.
+The offline implementation was validated with the complete 42-test Stage 1–2–probe suite, `pip check`, byte compilation and console-help execution. Tests include arbitrary synthetic person-like tag and attribute names and prove they do not serialize. They use synthetic fake pages only; they do not start Chrome or connect to a website.
 
 ## What this run can and cannot prove
 
-This preflight can prove local CDP attachment, one-page matching, numbered `contents_N` / `writers_N` / `regdate_N` alignment, field presence and sanitized structural names with no scripted page action. It cannot yet prove real writer-to-actor mappings, timestamp parsing/timezone, metadata selectors, outstanding/reviewed status, actual correction signatures or semantics, cleaned text, the seven fields, or a safe export. Those remain explicit blockers rather than guesses.
+This preflight can prove local CDP attachment, one-page matching, numbered `contents_N` / `writers_N` / `regdate_N` alignment, field presence and aggregate structural counts with no scripted page action. It cannot reveal structural names, or prove real writer-to-actor mappings, timestamp parsing/timezone, metadata selectors, outstanding/reviewed status, actual correction signatures or semantics, cleaned text, the seven fields, or a safe export. Those remain explicit blockers rather than guesses.
 
 Stop after this one command. Do not browse to another record for the probe, rerun across students, or work around a blocker by adding selectors locally. Record only the sanitized JSON and the human's pass/block assessment for review before any next bounded change.
 

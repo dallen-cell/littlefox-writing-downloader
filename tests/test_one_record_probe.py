@@ -106,14 +106,35 @@ class OneRecordProbeTests(unittest.TestCase):
         self.assertTrue(report.writer_fields_complete)
         self.assertTrue(report.timestamp_fields_complete)
         self.assertTrue(report.source_html_complete)
-        self.assertEqual(report.observed_tag_names, ("div", "p"))
-        self.assertEqual(report.observed_attribute_names, ("class",))
+        self.assertEqual(report.html_element_count, 2)
+        self.assertEqual(report.html_attribute_count, 1)
+        self.assertEqual(report.states_with_html_elements, 2)
         self.assertIn("actor_mapping_unverified", report.blockers)
         self.assertFalse(report.export_created)
         self.assertEqual(page.actions, [])
         serialized = report.sanitized_json()
         for secret in ("Student secret text", "Second secret", "synthetic-writer-value", "2099-01-01"):
             self.assertNotIn(secret, serialized)
+
+    def test_person_like_tag_and_attribute_names_never_serialize(self) -> None:
+        page = FakePage(
+            [
+                FakeElement(
+                    "contents_0",
+                    html='<alex-person taylor-person="synthetic">Private synthetic text</alex-person>',
+                ),
+                FakeElement("writers_0", value="synthetic-writer"),
+                FakeElement("regdate_0", value="2099-01-01"),
+            ]
+        )
+        report = inspect_browser(FakeBrowser([page]))
+        serialized = report.sanitized_json().casefold()
+        self.assertEqual(report.html_element_count, 1)
+        self.assertEqual(report.html_attribute_count, 1)
+        self.assertEqual(report.states_with_html_elements, 1)
+        self.assertNotIn("alex-person", serialized)
+        self.assertNotIn("taylor-person", serialized)
+        self.assertNotIn("private synthetic text", serialized)
 
     def test_missing_mismatched_and_multiple_pages_block(self) -> None:
         no_match = inspect_browser(FakeBrowser([FakePage([])]))

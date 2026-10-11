@@ -40,8 +40,9 @@ class ProbeReport:
     writer_fields_complete: bool
     timestamp_fields_complete: bool
     source_html_complete: bool
-    observed_tag_names: tuple[str, ...]
-    observed_attribute_names: tuple[str, ...]
+    html_element_count: int
+    html_attribute_count: int
+    states_with_html_elements: int
     blockers: tuple[str, ...]
     export_created: bool = False
 
@@ -53,12 +54,12 @@ class ProbeReport:
 class _StructureCollector(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
-        self.tags: set[str] = set()
-        self.attributes: set[str] = set()
+        self.element_count = 0
+        self.attribute_count = 0
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        self.tags.add(tag.lower())
-        self.attributes.update(name.lower() for name, _ in attrs)
+        self.element_count += 1
+        self.attribute_count += len(attrs)
 
     def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         self.handle_starttag(tag, attrs)
@@ -151,19 +152,21 @@ def inspect_browser(browser: Any) -> ProbeReport:
     pages = [page for context in browser.contexts for page in context.pages]
     if len(pages) != 1:
         blocker = "no_open_page" if not pages else "multiple_open_pages"
-        return ProbeReport(True, 0, 0, False, False, False, (), (), (blocker,))
+        return ProbeReport(True, 0, 0, False, False, False, 0, 0, 0, (blocker,))
     if not _is_candidate_page(pages[0]):
-        return ProbeReport(True, 0, 0, False, False, False, (), (), ("no_matching_detail_page",))
+        return ProbeReport(True, 0, 0, False, False, False, 0, 0, 0, ("no_matching_detail_page",))
 
     states, acquisition_blockers = _read_states(pages[0])
-    tags: set[str] = set()
-    attributes: set[str] = set()
+    element_count = 0
+    attribute_count = 0
+    states_with_elements = 0
     for state in states:
         collector = _StructureCollector()
         collector.feed(state.source_html)
         collector.close()
-        tags.update(collector.tags)
-        attributes.update(collector.attributes)
+        element_count += collector.element_count
+        attribute_count += collector.attribute_count
+        states_with_elements += collector.element_count > 0
 
     blockers = list(acquisition_blockers)
     writer_complete = bool(states) and all(state.writer_evidence != "" for state in states)
@@ -192,8 +195,9 @@ def inspect_browser(browser: Any) -> ProbeReport:
         writer_fields_complete=writer_complete,
         timestamp_fields_complete=timestamp_complete,
         source_html_complete=html_complete,
-        observed_tag_names=tuple(sorted(tags)),
-        observed_attribute_names=tuple(sorted(attributes)),
+        html_element_count=element_count,
+        html_attribute_count=attribute_count,
+        states_with_html_elements=states_with_elements,
         blockers=tuple(sorted(set(blockers))),
     )
 
@@ -230,8 +234,9 @@ def run_probe(
             False,
             False,
             False,
-            (),
-            (),
+            0,
+            0,
+            0,
             (f"cdp_attach_or_read_failed:{type(error).__name__}",),
         )
 
