@@ -1,8 +1,8 @@
 """Bounded, read-only discovery of Writing contexts for one selected class.
 
-Navigation uses only anchor hrefs read from the current same-origin page. It
-does not construct site URLs, submit forms, click controls, paginate, open
-record details, interpret source actors, or create student files.
+Navigation uses only documented class controls and anchor hrefs read from the
+current same-origin page. It does not construct site URLs, submit forms,
+paginate, open record details, interpret source actors, or create files.
 """
 
 from __future__ import annotations
@@ -16,10 +16,9 @@ from urllib.parse import parse_qsl, urljoin, urlsplit
 
 from .acquisition import (
     SiteLinkEvidence,
+    StudentContext,
     WritingRecordContext,
-    class_contexts,
     query_value,
-    student_contexts,
     writing_record_contexts,
 )
 from .one_record_probe import ProbeConfigurationError, validate_cdp_endpoint
@@ -27,30 +26,51 @@ from .one_record_probe import ProbeConfigurationError, validate_cdp_endpoint
 
 _MAX_STUDENTS = 100
 _MAX_RECORDS = 1000
-_ROUTE_LABELS = ("Homework", "Writing")
+_CLASS_LIST_PATH = "/Manager/Class/Lessons.php"
 
 
 @dataclass(frozen=True, slots=True)
 class ReadOnlyRoutePolicy:
     """Exact documented GET paths for each acquisition navigation family."""
 
-    class_paths: frozenset[str] = frozenset()
-    student_paths: frozenset[str] = frozenset()
-    homework_paths: frozenset[str] = frozenset()
-    writing_paths: frozenset[str] = frozenset()
+    class_paths: frozenset[str] = frozenset({_CLASS_LIST_PATH})
+    student_paths: frozenset[str] = frozenset({"/Manager/Student/Student_main.php"})
+    homework_paths: frozenset[str] = frozenset({"/Manager/Student/Student_homework2.php"})
+    writing_launcher_paths: frozenset[str] = frozenset({"/Manager/Class/Homework_write.php"})
+    writing_history_paths: frozenset[str] = frozenset({"/Manager/Homework/writing/list.php"})
+    writing_detail_paths: frozenset[str] = frozenset({"/Manager/Homework/writing/view_editor.php"})
 
 
-# The repository records identifier relationships, but not verified live route
-# paths. Production therefore fails closed until those paths are added from the
-# authoritative map. Tests inject synthetic documented paths.
 DOCUMENTED_ROUTE_POLICY = ReadOnlyRoutePolicy()
 
 _ALLOWED_QUERY_KEYS = {
-    "class": frozenset({"scpid"}),
-    "student": frozenset({"scpid", "bsWriterID"}),
-    "homework": frozenset({"scpid", "bsWriterID"}),
-    "writing": frozenset({"scpid", "bsWriterID"}),
+    "class": frozenset(),
+    "student": frozenset({"ulID"}),
+    "homework": frozenset({"ulID"}),
+    "writing_launcher": frozenset({"scpid", "bsWriterID"}),
+    "writing_history": frozenset({"scpid", "bsWriterID"}),
+    "writing_detail": frozenset({"bsPID", "bsWriterID", "scpid", "qpid", "la_pid"}),
 }
+
+_REQUIRED_QUERY_KEYS = {family: keys for family, keys in _ALLOWED_QUERY_KEYS.items()}
+
+
+@dataclass(frozen=True, slots=True)
+class ClassControlEvidence:
+    """One exact GoClass control and its actual six site-provided arguments."""
+
+    text: str
+    arguments: tuple[str, ...]
+    element: Any
+    surface: Any
+
+
+@dataclass(frozen=True, slots=True)
+class StudentSelection:
+    class_code: str
+    student_name: str
+    student_code: str
+    href: str
 
 
 class DiscoveryBlock(Exception):
@@ -111,6 +131,81 @@ def _row_fields(anchor: Any) -> tuple[tuple[str, str], ...]:
     return tuple(zip(headers, cells))
 
 
+def _split_call_arguments(source: str) -> tuple[str, ...] | None:
+    """Count opaque JS arguments without evaluating or reusing their values."""
+    values: list[str] = []
+    start = 0
+    quote: str | None = None
+    escaped = False
+    for position, character in enumerate(source):
+        if escaped:
+            escaped = False
+        elif character == "\\" and quote is not None:
+            escaped = True
+        elif character in ("'", '"'):
+            if quote is None:
+                quote = character
+            elif quote == character:
+                quote = None
+        elif character == "," and quote is None:
+            values.append(source[start:position].strip())
+            start = position + 1
+    if quote is not None:
+        return None
+    values.append(source[start:].strip())
+    return tuple(values) if all(values) else None
+
+
+def _go_class_arguments(handler: str) -> tuple[str, ...] | None:
+    cleaned = handler.strip()
+    if cleaned.startswith("return "):
+        cleaned = cleaned[7:].strip()
+    if cleaned.endswith(";"):
+        cleaned = cleaned[:-1].strip()
+    prefix = "GoClass("
+    if not cleaned.startswith(prefix) or not cleaned.endswith(")"):
+        return None
+    arguments = _split_call_arguments(cleaned[len(prefix):-1])
+    return arguments if arguments is not None and len(arguments) == 6 else None
+
+
+def collect_class_controls(page: Any) -> tuple[tuple[ClassControlEvidence, ...], int]:
+    """Read exact GoClass/GoList controls from the documented mainFrame."""
+    frame = page.frame(name="mainFrame")
+    if frame is None or urlsplit(frame.url).path != _CLASS_LIST_PATH:
+        raise DiscoveryBlock("missing_documented_class_frame")
+    controls: list[ClassControlEvidence] = []
+    go_list_count = 0
+    elements = frame.locator("[onclick], a[href]")
+    for position in range(elements.count()):
+        element = elements.nth(position)
+        handler = element.get_attribute("onclick") or ""
+        href = element.get_attribute("href") or ""
+        if not handler and href.strip().casefold().startswith("javascript:"):
+            handler = href.strip()[len("javascript:"):]
+        arguments = _go_class_arguments(handler)
+        if arguments is not None:
+            controls.append(ClassControlEvidence(element.text_content() or "", arguments, element, frame))
+        elif handler.strip().startswith("GoList(") or handler.strip().startswith("return GoList("):
+            go_list_count += 1
+    return tuple(controls), go_list_count
+
+
+def activate_class_control(control: ClassControlEvidence) -> None:
+    """Invoke the actual documented control; never reconstruct its arguments."""
+    before_origin = _origin(control.surface.url)
+    control.element.click()
+    control.surface.wait_for_load_state("domcontentloaded")
+    parsed = urlsplit(control.surface.url)
+    if (
+        _origin(control.surface.url) != before_origin
+        or parsed.path != _CLASS_LIST_PATH
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise DiscoveryBlock("unexpected_class_control_navigation")
+
+
 def collect_site_links(page: Any) -> tuple[SiteLinkEvidence, ...]:
     """Collect actual anchors and visible row evidence without page actions."""
     anchors = page.locator("a[href]")
@@ -142,7 +237,7 @@ def _documented_read_only_link(href: str, policy: ReadOnlyRoutePolicy, family: s
     keys = [key for key, _ in pairs]
     if any(key not in _ALLOWED_QUERY_KEYS[family] for key in keys):
         return False
-    return len(keys) == len(set(keys))
+    return len(keys) == len(set(keys)) and set(keys) == _REQUIRED_QUERY_KEYS[family]
 
 
 def _navigate(page: Any, href: str, policy: ReadOnlyRoutePolicy, family: str) -> None:
@@ -157,46 +252,78 @@ def _navigate(page: Any, href: str, policy: ReadOnlyRoutePolicy, family: str) ->
 
 def _route_link(
     links: tuple[SiteLinkEvidence, ...],
-    label: str,
+    family: str,
+    policy: ReadOnlyRoutePolicy,
     *,
-    scpid: str,
-    writer_id: str,
+    expected: dict[str, str],
 ) -> SiteLinkEvidence | None:
     candidates: dict[str, SiteLinkEvidence] = {}
     for link in links:
-        if " ".join(link.text.split()).casefold() != label.casefold():
+        if urlsplit(link.href).path in _family_paths(policy, family) and not _documented_read_only_link(
+            link.href, policy, family
+        ):
+            raise DiscoveryBlock("unsupported_or_unsafe_" + family + "_route")
+        if not _documented_read_only_link(link.href, policy, family):
             continue
-        linked_class = query_value(link.href, "scpid")
-        linked_writer = query_value(link.href, "bsWriterID")
-        if linked_class not in (None, scpid) or linked_writer not in (None, writer_id):
+        if any(query_value(link.href, key) != value for key, value in expected.items()):
             continue
         candidates[link.href] = link
     if len(candidates) > 1:
-        raise DiscoveryBlock("ambiguous_" + label.casefold() + "_link")
+        raise DiscoveryBlock("ambiguous_" + family + "_link")
     return next(iter(candidates.values())) if candidates else None
+
+
+def _student_selections(class_code: str, links: tuple[SiteLinkEvidence, ...], policy: ReadOnlyRoutePolicy) -> tuple[StudentSelection, ...]:
+    selections: dict[str, StudentSelection] = {}
+    conflicted: set[str] = set()
+    for link in links:
+        if not _documented_read_only_link(link.href, policy, "student"):
+            continue
+        student_code = query_value(link.href, "ulID")
+        student_name = " ".join(link.text.split())
+        if student_code is None or not student_name:
+            continue
+        candidate = StudentSelection(class_code, student_name, student_code, link.href)
+        existing = selections.get(student_code)
+        if existing is not None and existing != candidate:
+            conflicted.add(student_code)
+            selections.pop(student_code, None)
+        elif student_code not in conflicted:
+            selections[student_code] = candidate
+    return tuple(sorted(selections.values(), key=lambda item: (item.student_name.casefold(), item.student_code)))
 
 
 def _history_links(
     page: Any,
-    student: Any,
+    student: StudentSelection,
     link_reader: Callable[[Any], tuple[SiteLinkEvidence, ...]],
     route_policy: ReadOnlyRoutePolicy,
-) -> tuple[tuple[SiteLinkEvidence, ...], int]:
-    """Reach the current Writing history page through documented link labels."""
+) -> tuple[tuple[SiteLinkEvidence, ...], int, str]:
+    """Reach history only through the documented student route sequence."""
     links = link_reader(page)
     navigation_gets = 0
-    if any(query_value(link.href, "bsPID") is not None for link in links):
-        return links, navigation_gets
-    for label in _ROUTE_LABELS:
-        route = _route_link(links, label, scpid=student.scpid, writer_id=student.student_code)
+    for family, expected in (
+        ("homework", {"ulID": student.student_code}),
+        ("writing_launcher", {"bsWriterID": student.student_code}),
+    ):
+        route = _route_link(links, family, route_policy, expected=expected)
         if route is None:
-            raise DiscoveryBlock("missing_" + label.casefold() + "_link")
-        _navigate(page, route.href, route_policy, label.casefold())
+            raise DiscoveryBlock("missing_" + family + "_link")
+        _navigate(page, route.href, route_policy, family)
         navigation_gets += 1
         links = link_reader(page)
-        if any(query_value(link.href, "bsPID") is not None for link in links):
-            return links, navigation_gets
-    raise DiscoveryBlock("missing_writing_history_links")
+    launcher_class = query_value(route.href, "scpid")
+    if launcher_class is None:
+        raise DiscoveryBlock("missing_writing_class_instance")
+    history = _route_link(
+        links, "writing_history", route_policy,
+        expected={"scpid": launcher_class, "bsWriterID": student.student_code},
+    )
+    if history is None:
+        raise DiscoveryBlock("missing_writing_history_link")
+    _navigate(page, history.href, route_policy, "writing_history")
+    navigation_gets += 1
+    return link_reader(page), navigation_gets, launcher_class
 
 
 def discover_one_class(
@@ -204,42 +331,49 @@ def discover_one_class(
     class_code: str,
     *,
     link_reader: Callable[[Any], tuple[SiteLinkEvidence, ...]] = collect_site_links,
+    class_control_reader: Callable[[Any], tuple[tuple[ClassControlEvidence, ...], int]] = collect_class_controls,
+    class_activator: Callable[[ClassControlEvidence], None] = activate_class_control,
     route_policy: ReadOnlyRoutePolicy = DOCUMENTED_ROUTE_POLICY,
 ) -> DiscoveryOutcome:
-    """Follow actual GET links for one class and return a no-file dry run."""
+    """Use one actual GoClass control, then documented GET links; create no files."""
     pages = [page for context in browser.contexts for page in context.pages]
     issues: Counter[str] = Counter()
-    class_matches: list[tuple[Any, Any]] = []
-    total_class_links = 0
+    class_matches: list[ClassControlEvidence] = []
+    total_class_controls = 0
+    go_list_controls = 0
     for page in pages:
-        links = link_reader(page)
-        classes, found_issues = class_contexts(links)
-        total_class_links += len(classes)
-        issues.update(issue.code for issue in found_issues)
-        class_matches.extend((page, item) for item in classes if item.class_code == class_code)
+        try:
+            controls, list_count = class_control_reader(page)
+        except DiscoveryBlock as error:
+            issues[str(error)] += 1
+            continue
+        total_class_controls += len(controls)
+        go_list_controls += list_count
+        class_matches.extend(control for control in controls if " ".join(control.text.split()) == class_code)
     if len(class_matches) != 1:
-        # Known class navigation may be JavaScript-driven. Without a supported
-        # documented control, absence of an anchor is acquisition failure—not
-        # evidence that the class or its outstanding Writing count is zero.
-        missing_code = "class_navigation_unsupported_or_missing" if not class_matches else "selected_class_ambiguous"
+        missing_code = "selected_class_ambiguous" if class_matches else (
+            "class_list_selection_required" if go_list_controls else "class_navigation_unsupported_or_missing"
+        )
         issues[missing_code] += 1
         return DiscoveryOutcome(
-            DiscoveryReport(True, total_class_links, False, 0, 0, 0, 0, 0, False, False, None, dict(issues)),
+            DiscoveryReport(True, total_class_controls, False, 0, 0, 0, 0, 0, False, False, None, dict(issues)),
             (),
         )
 
-    page, selected_class = class_matches[0]
+    selected_control = class_matches[0]
+    page = selected_control.surface
     try:
-        _navigate(page, selected_class.href, route_policy, "class")
+        class_activator(selected_control)
     except DiscoveryBlock as error:
         issues[str(error)] += 1
         return DiscoveryOutcome(
-            DiscoveryReport(True, total_class_links, True, 0, 0, 0, 0, 0, False, False, None, dict(issues)),
+            DiscoveryReport(True, total_class_controls, True, 0, 0, 0, 0, 0, False, False, None, dict(issues)),
             (),
         )
-    navigation_gets = 1
-    students, student_issues = student_contexts(selected_class, link_reader(page))
-    issues.update(issue.code for issue in student_issues)
+    navigation_gets = 0
+    students = _student_selections(class_code, link_reader(page), route_policy)
+    if not students:
+        issues["student_links_missing_after_class_selection"] += 1
     if len(students) > _MAX_STUDENTS:
         issues["student_limit_exceeded"] += 1
         students = students[:_MAX_STUDENTS]
@@ -251,9 +385,21 @@ def discover_one_class(
         try:
             _navigate(page, student.href, route_policy, "student")
             navigation_gets += 1
-            history_links, route_gets = _history_links(page, student, link_reader, route_policy)
+            history_links, route_gets, scpid = _history_links(page, student, link_reader, route_policy)
             navigation_gets += route_gets
-            records, record_issues = writing_record_contexts(student, history_links)
+            safe_details: list[SiteLinkEvidence] = []
+            for link in history_links:
+                if query_value(link.href, "bsPID") is None:
+                    continue
+                if not _documented_read_only_link(link.href, route_policy, "writing_detail"):
+                    issues["unsupported_writing_detail_link"] += 1
+                    continue
+                if query_value(link.href, "scpid") != scpid or query_value(link.href, "bsWriterID") != student.student_code:
+                    issues["writing_detail_identity_mismatch"] += 1
+                    continue
+                safe_details.append(link)
+            context = StudentContext(class_code, scpid, student.student_name, student.student_code, student.href)
+            records, record_issues = writing_record_contexts(context, tuple(safe_details))
             issues.update(issue.code for issue in record_issues)
             records_seen += len(records)
             contexts.extend(records)
@@ -270,7 +416,7 @@ def discover_one_class(
     issues["history_pagination_unverified"] += 1
     report = DiscoveryReport(
         attach_succeeded=True,
-        class_links_discovered=total_class_links,
+        class_links_discovered=total_class_controls,
         selected_class_found=True,
         students_discovered=len(students),
         students_scanned=students_scanned,

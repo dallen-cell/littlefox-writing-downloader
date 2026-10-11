@@ -1,175 +1,137 @@
 import unittest
 
 from littlefox_writing.acquisition import SiteLinkEvidence
-from littlefox_writing.one_class_discovery import ReadOnlyRoutePolicy, discover_one_class
+from littlefox_writing.one_class_discovery import ClassControlEvidence, _go_class_arguments, discover_one_class
 
 from test_one_record_probe import FakeBrowser
 
 
+ORIGIN = "https://synthetic.invalid"
+LESSONS = ORIGIN + "/Manager/Class/Lessons.php"
+STUDENT = ORIGIN + "/Manager/Student/Student_main.php?ulID=SYN-001"
+HOMEWORK = ORIGIN + "/Manager/Student/Student_homework2.php?ulID=SYN-001"
+LAUNCHER = ORIGIN + "/Manager/Class/Homework_write.php?bsWriterID=SYN-001&scpid=instance-9"
+HISTORY = ORIGIN + "/Manager/Homework/writing/list.php?scpid=instance-9&bsWriterID=SYN-001"
+DETAIL = (ORIGIN + "/Manager/Homework/writing/view_editor.php?bsPID=record-1&bsWriterID=SYN-001"
+          "&scpid=instance-9&qpid=task-2&la_pid=activity-3")
+
+
 class FakeNavigationPage:
-    def __init__(
-        self,
-        start_url: str,
-        evidence: dict[str, tuple[SiteLinkEvidence, ...]],
-        redirects: dict[str, str] | None = None,
-    ) -> None:
-        self.url = start_url
+    def __init__(self, evidence: dict[str, tuple[SiteLinkEvidence, ...]]) -> None:
+        self.url = LESSONS
         self.evidence = evidence
         self.actions: list[tuple[str, str]] = []
-        self.redirects = redirects or {}
+        self.after_class: tuple[SiteLinkEvidence, ...] = ()
+        self.control = ClassControlEvidence(
+            "DEMO-A", ("ref", "scno-7", "time", "teacher", "level", "mode"), object(), self,
+        )
 
     def goto(self, href: str, *, wait_until: str) -> None:
         self.actions.append(("goto", href))
         if href not in self.evidence:
-            raise AssertionError("navigator used a URL that was not supplied by synthetic site evidence")
-        self.url = self.redirects.get(href, href)
+            raise AssertionError("navigation used a URL absent from site evidence")
+        self.url = href
 
 
 def reader(page: FakeNavigationPage) -> tuple[SiteLinkEvidence, ...]:
     return page.evidence[page.url]
 
 
-ORIGIN = "https://synthetic.invalid"
-MAIN = ORIGIN + "/manager"
-CLASS = ORIGIN + "/class?scpid=class-token"
-STUDENT_1 = ORIGIN + "/student?scpid=class-token&bsWriterID=SYN-001"
-STUDENT_2 = ORIGIN + "/student?scpid=class-token&bsWriterID=SYN-002"
-HOMEWORK_1 = ORIGIN + "/homework?scpid=class-token&bsWriterID=SYN-001"
-WRITING_1 = ORIGIN + "/writing?scpid=class-token&bsWriterID=SYN-001"
-RECORD_1 = ORIGIN + "/detail?bsPID=persistent-1"
-RECORD_2 = ORIGIN + "/detail?bsPID=persistent-2"
-ROUTES = ReadOnlyRoutePolicy(
-    class_paths=frozenset({"/class"}),
-    student_paths=frozenset({"/student"}),
-    homework_paths=frozenset({"/homework"}),
-    writing_paths=frozenset({"/writing"}),
-)
+def controls(page: FakeNavigationPage) -> tuple[tuple[ClassControlEvidence, ...], int]:
+    return (page.control,), 1
+
+
+def activate(control: ClassControlEvidence) -> None:
+    page = control.surface
+    page.actions.append(("click-GoClass", "site-control"))
+    page.evidence[LESSONS] = page.after_class
 
 
 class OneClassDiscoveryTests(unittest.TestCase):
-    def test_one_class_dry_run_follows_only_supplied_links_and_propagates_context(self) -> None:
+    def test_documented_go_class_and_writing_routes_propagate_context(self) -> None:
         evidence = {
-            MAIN: (SiteLinkEvidence(CLASS, "DEMO-A"),),
-            CLASS: (
-                SiteLinkEvidence(STUDENT_1, "Synthetic One"),
-                SiteLinkEvidence(STUDENT_2, "Synthetic Two"),
-            ),
-            STUDENT_1: (SiteLinkEvidence(HOMEWORK_1, "Homework"),),
-            HOMEWORK_1: (SiteLinkEvidence(WRITING_1, "Writing"),),
-            WRITING_1: (
-                SiteLinkEvidence(
-                    RECORD_1,
-                    "Imaginary Journey",
-                    (("Title", "Imaginary Journey"), ("Type", "Personal Narrative")),
-                ),
-                # The same persistent task link is not a second submission round.
-                SiteLinkEvidence(
-                    RECORD_1,
-                    "Imaginary Journey",
-                    (("Title", "Imaginary Journey"), ("Type", "Personal Narrative")),
-                ),
-            ),
-            STUDENT_2: (
-                SiteLinkEvidence(
-                    RECORD_2,
-                    "Second Task",
-                    (("Title", "Second Task"),),  # genre absent: explicit blocker
-                ),
-            ),
+            LESSONS: (),
+            STUDENT: (SiteLinkEvidence(HOMEWORK, "Homework"),),
+            HOMEWORK: (SiteLinkEvidence(LAUNCHER, "Writing"),),
+            LAUNCHER: (SiteLinkEvidence(HISTORY, "Writing history"),),
+            HISTORY: (SiteLinkEvidence(
+                DETAIL, "Imaginary Journey",
+                (("Title", "Imaginary Journey"), ("Type", "Personal Narrative")),
+            ),),
         }
-        page = FakeNavigationPage(MAIN, evidence)
-        outcome = discover_one_class(FakeBrowser([page]), "DEMO-A", link_reader=reader, route_policy=ROUTES)
-        self.assertEqual(outcome.report.students_discovered, 2)
-        self.assertEqual(outcome.report.students_scanned, 2)
+        page = FakeNavigationPage(evidence)
+        page.after_class = (SiteLinkEvidence(STUDENT, "Synthetic One"),)
+        outcome = discover_one_class(
+            FakeBrowser([page]), "DEMO-A", link_reader=reader,
+            class_control_reader=controls, class_activator=activate,
+        )
+        self.assertEqual(outcome.report.students_discovered, 1)
         self.assertEqual(outcome.report.complete_contexts, 1)
-        self.assertEqual(outcome.contexts[0].bspid, "persistent-1")
         self.assertEqual(outcome.contexts[0].student_code, "SYN-001")
-        self.assertEqual(outcome.contexts[0].title, "Imaginary Journey")
-        self.assertEqual(outcome.contexts[0].genre, "Personal Narrative")
-        self.assertIn("missing_or_ambiguous_writing_genre", outcome.report.blocker_counts)
+        self.assertEqual(outcome.contexts[0].scpid, "instance-9")
+        self.assertEqual(outcome.contexts[0].bspid, "record-1")
+        self.assertNotEqual(page.control.arguments[1], outcome.contexts[0].scpid)
+        self.assertEqual(page.actions, [
+            ("click-GoClass", "site-control"), ("goto", STUDENT), ("goto", HOMEWORK),
+            ("goto", LAUNCHER), ("goto", HISTORY),
+        ])
+        self.assertFalse(outcome.report.scan_complete)
+        self.assertIsNone(outcome.report.outstanding_writing)
         self.assertIn("history_pagination_unverified", outcome.report.blocker_counts)
-        self.assertFalse(outcome.report.pagination_scanned)
-        self.assertFalse(outcome.report.scan_complete)
-        self.assertIsNone(outcome.report.outstanding_writing)
-        self.assertEqual(
-            page.actions,
-            [
-                ("goto", CLASS),
-                ("goto", STUDENT_1),
-                ("goto", HOMEWORK_1),
-                ("goto", WRITING_1),
-                ("goto", STUDENT_2),
-            ],
-        )
-        serialized = outcome.report.sanitized_json()
-        for private in ("Synthetic One", "SYN-001", "Imaginary Journey", "persistent-1"):
-            self.assertNotIn(private, serialized)
+        for private in ("Synthetic One", "SYN-001", "instance-9", "record-1"):
+            self.assertNotIn(private, outcome.report.sanitized_json())
 
-    def test_missing_selected_class_does_not_navigate(self) -> None:
-        page = FakeNavigationPage(MAIN, {MAIN: (SiteLinkEvidence(CLASS, "DEMO-A"),)})
-        outcome = discover_one_class(FakeBrowser([page]), "MISSING", link_reader=reader, route_policy=ROUTES)
-        self.assertEqual(outcome.contexts, ())
-        self.assertEqual(outcome.report.blocker_counts, {"class_navigation_unsupported_or_missing": 1})
+    def test_go_class_parser_is_exact_and_does_not_accept_unknown_functions(self) -> None:
+        parsed = _go_class_arguments("GoClass('r','scno','t','teacher','l','m');")
+        self.assertEqual(len(parsed), 6)
+        self.assertIsNone(_go_class_arguments("GoClass('too','few')"))
+        self.assertIsNone(_go_class_arguments("Unknown('r','s','t','n','l','m')"))
+
+    def test_go_list_requirement_is_incomplete_not_zero(self) -> None:
+        page = FakeNavigationPage({LESSONS: ()})
+        outcome = discover_one_class(
+            FakeBrowser([page]), "MISSING", link_reader=reader,
+            class_control_reader=lambda unused: ((), 2), class_activator=activate,
+        )
+        self.assertEqual(outcome.report.blocker_counts, {"class_list_selection_required": 1})
         self.assertFalse(outcome.report.scan_complete)
         self.assertIsNone(outcome.report.outstanding_writing)
         self.assertEqual(page.actions, [])
 
-    def test_cross_origin_and_ambiguous_intermediate_links_block(self) -> None:
-        unsafe_student = ORIGIN + "/student?scpid=class-token&bsWriterID=SYN-003"
+    def test_unknown_history_parameters_block(self) -> None:
+        unsafe_history = HISTORY + "&action=delete"
         evidence = {
-            MAIN: (SiteLinkEvidence(CLASS, "DEMO-A"),),
-            CLASS: (SiteLinkEvidence(unsafe_student, "Synthetic Three"),),
-            unsafe_student: (
-                SiteLinkEvidence("https://other.invalid/homework", "Homework"),
-                SiteLinkEvidence(ORIGIN + "/other-homework", "Homework"),
-            ),
+            LESSONS: (), STUDENT: (SiteLinkEvidence(HOMEWORK, "Homework"),),
+            HOMEWORK: (SiteLinkEvidence(LAUNCHER, "Writing"),),
+            LAUNCHER: (SiteLinkEvidence(unsafe_history, "Writing history"),),
         }
-        page = FakeNavigationPage(MAIN, evidence)
-        outcome = discover_one_class(FakeBrowser([page]), "DEMO-A", link_reader=reader, route_policy=ROUTES)
-        self.assertIn("ambiguous_homework_link", outcome.report.blocker_counts)
-        self.assertEqual(outcome.contexts, ())
-        self.assertTrue(all(action == "goto" for action, _ in page.actions))
-
-    def test_unrecognised_action_routes_and_redirects_block_as_partial(self) -> None:
-        unsafe_class = ORIGIN + "/process/delete?scpid=class-token"
-        unsafe = FakeNavigationPage(MAIN, {MAIN: (SiteLinkEvidence(unsafe_class, "DEMO-A"),)})
+        page = FakeNavigationPage(evidence)
+        page.after_class = (SiteLinkEvidence(STUDENT, "Synthetic One"),)
         outcome = discover_one_class(
-            FakeBrowser([unsafe]), "DEMO-A", link_reader=reader, route_policy=ROUTES,
+            FakeBrowser([page]), "DEMO-A", link_reader=reader,
+            class_control_reader=controls, class_activator=activate,
         )
-        self.assertIn("unsupported_or_unsafe_class_route", outcome.report.blocker_counts)
-        self.assertEqual(unsafe.actions, [])
+        self.assertIn("unsupported_or_unsafe_writing_history_route", outcome.report.blocker_counts)
         self.assertFalse(outcome.report.scan_complete)
         self.assertIsNone(outcome.report.outstanding_writing)
 
-        query_action = ORIGIN + "/class?scpid=class-token&action=delete"
-        unsafe = FakeNavigationPage(MAIN, {MAIN: (SiteLinkEvidence(query_action, "DEMO-A"),)})
+    def test_detail_requires_confirmed_path_and_identity_keys(self) -> None:
+        unsafe_detail = ORIGIN + "/Manager/Homework/writing/process.php?bsPID=record-1"
+        evidence = {
+            LESSONS: (), STUDENT: (SiteLinkEvidence(HOMEWORK, "Homework"),),
+            HOMEWORK: (SiteLinkEvidence(LAUNCHER, "Writing"),),
+            LAUNCHER: (SiteLinkEvidence(HISTORY, "Writing history"),),
+            HISTORY: (SiteLinkEvidence(unsafe_detail, "Task", (("Title", "Task"), ("Type", "Essay"))),),
+        }
+        page = FakeNavigationPage(evidence)
+        page.after_class = (SiteLinkEvidence(STUDENT, "Synthetic One"),)
         outcome = discover_one_class(
-            FakeBrowser([unsafe]), "DEMO-A", link_reader=reader, route_policy=ROUTES,
+            FakeBrowser([page]), "DEMO-A", link_reader=reader,
+            class_control_reader=controls, class_activator=activate,
         )
-        self.assertIn("unsupported_or_unsafe_class_route", outcome.report.blocker_counts)
-        self.assertEqual(unsafe.actions, [])
-
-        redirected = FakeNavigationPage(
-            MAIN,
-            {
-                MAIN: (SiteLinkEvidence(CLASS, "DEMO-A"),),
-                CLASS: (),
-            },
-            redirects={CLASS: ORIGIN + "/manager"},
-        )
-        outcome = discover_one_class(
-            FakeBrowser([redirected]), "DEMO-A", link_reader=reader, route_policy=ROUTES,
-        )
-        self.assertIn("unexpected_navigation_redirect", outcome.report.blocker_counts)
-        self.assertFalse(outcome.report.scan_complete)
-
-    def test_default_policy_blocks_until_live_route_families_are_documented(self) -> None:
-        page = FakeNavigationPage(MAIN, {MAIN: (SiteLinkEvidence(CLASS, "DEMO-A"),)})
-        outcome = discover_one_class(FakeBrowser([page]), "DEMO-A", link_reader=reader)
-        self.assertIn("unsupported_or_unsafe_class_route", outcome.report.blocker_counts)
-        self.assertEqual(page.actions, [])
+        self.assertIn("unsupported_writing_detail_link", outcome.report.blocker_counts)
+        self.assertEqual(outcome.contexts, ())
 
 
 if __name__ == "__main__":
     unittest.main()
-

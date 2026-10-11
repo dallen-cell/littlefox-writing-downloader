@@ -38,9 +38,10 @@ after authenticated Chrome is open, run run_one_class_dry_run.cmd and enter
 one exact class code. It follows only captured same-origin links, scans only
 current history pages, emits sanitized counts/codes, and creates no files.
 Pagination and live metadata relationships remain unverified, so status 3 is
-expected. The checked-in route policy is intentionally empty until exact
-read-only paths are confirmed from the approved technical map, so the current
-launcher will block without navigating. See docs/automatic-acquisition.md.
+expected. The checked-in policy permits only confirmed read-only paths and an
+actual matching GoClass control. It stops at class_list_selection_required if
+the requested class needs an unverified GoList choice, and blocks unknown
+history parameters. See docs/automatic-acquisition.md.
 There is NO class export and an incomplete scan never means zero outstanding.
 
 EXPERIMENTAL GATE B - ONE RECORD ONLY

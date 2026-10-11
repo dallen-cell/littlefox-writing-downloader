@@ -8,13 +8,19 @@ popup/source-state reader.
 
 ## Evidence boundary
 
-The implementation uses actual anchors found on the current page. It never
-constructs a Little Fox URL. The supported relationships are:
+The implementation uses the actual `GoClass` control and anchors found on the
+current page. It never constructs a Little Fox URL. The supported relationships are:
 
-- a class link has one `scpid`; its visible text supplies the class code;
-- a student link preserves `scpid` and has one `bsWriterID`; visible text
-  supplies the student name and `bsWriterID` supplies the student code;
-- a history link preserves those values and has one persistent `bsPID`;
+- the class list is `/Manager/Class/Lessons.php` in `mainFrame`; an exact
+  six-argument `GoClass` control supplies the class selection operation;
+- `scno` remains opaque class-navigation evidence and is never treated as the
+  Writing class instance `scpid`;
+- a student link uses `/Manager/Student/Student_main.php` with one `ulID`;
+  its visible text supplies the name and `ulID` supplies the login code;
+- Student Homework preserves `ulID`; the Writing launcher then supplies that
+  login code as `bsWriterID` together with the actual `scpid`;
+- the history and detail links must preserve those identities, and `bsPID` is
+  the persistent record rather than a submission attempt;
 - title comes from a visible `Title` field, or the record link text when no row
   title exists; genre comes only from `Type`, `Genre`, or `Writing Type`.
 
@@ -23,27 +29,25 @@ No actor codes, correction signatures, route URLs, selectors, or values are
 guessed. Multiple source states can be attached to one acquired `bsPID` and
 passed to the existing Stage 2 interpreter; a revision is not a new task.
 
-The collector reads generic anchors and semantic table headings. The only
-intermediate route labels accepted are the documented `Homework` and
-`Writing`. A site-supplied, same-origin link is not sufficient permission to
+The collector reads exact `GoClass` calls, generic anchors, and semantic table
+headings. It clicks the matched site control without reconstructing or
+evaluating its arguments. A site-supplied, same-origin link is not sufficient permission to
 navigate: each GET must also match an exact documented read-only route family
 and that family's permitted identity query keys. Unknown paths, extra query
 keys (including action/process parameters), credentials, cross-origin links,
 and every redirect block before further acquisition.
 
-The repository's checked-in documentation does not contain the authoritative
-live route paths, and the external technical map was unavailable in the cloud
-environment. `DOCUMENTED_ROUTE_POLICY` is therefore deliberately empty. The
-packaged command will report `unsupported_or_unsafe_class_route` without
-navigating until those exact paths can be transcribed from the approved map
-and reviewed. Synthetic tests inject fictional route families only; they are
-not Little Fox guesses.
+`DOCUMENTED_ROUTE_POLICY` contains only the confirmed Lessons, Student,
+Student Homework, Writing launcher, Writing history, and Writing detail paths.
+Student and launcher parameters are exact. Unknown additional history
+parameters produce `unsupported_or_unsafe_writing_history_route` pending
+validation.
 
-Existing documentation also warns that class selection may be JavaScript-
-driven instead of a conventional anchor. This implementation does not invent
-an `onclick` parser, selector, URL, or parameter. If a supported class anchor
-cannot be obtained, it reports `class_navigation_unsupported_or_missing`.
-That outcome is acquisition failure, never evidence of zero Writing.
+`GoList` controls are detected but not invoked: the handoff confirms their
+behavior but does not establish which actual list contains a requested class.
+If the desired `GoClass` control is not already present while `GoList` controls
+exist, the report is `class_list_selection_required`. No `scno`, list, selector,
+URL, or parameter is manufactured. This is acquisition failure, never zero.
 
 ## Bounded Windows dry-run
 
@@ -55,8 +59,9 @@ Chrome session, leave Chrome running, then run:
 run_one_class_dry_run.cmd
 ```
 
-Enter one exact class code shown by the site. The command follows only
-same-origin GET links captured from the page, scans at most 100 students and
+Enter one exact class code shown by the site. The command activates only a
+matching `GoClass` control and follows confirmed same-origin GET links captured
+from the page. It scans at most 100 students and
 1,000 current-page record contexts, opens no Writing detail, submits no form,
 and creates no files. JSON output contains only counts and fixed blocker codes;
 it never serializes acquired names, identifiers, titles, URLs, or genres.
@@ -76,8 +81,10 @@ history, title/genre extraction, missing and ambiguous evidence, strict
 read-only route policies, unsafe endpoints and redirects, bounded no-file
 behavior, incomplete-scan reporting, and sanitized diagnostics.
 
-Still unverified on Little Fox: consistency of the live query relationships;
-the route and column labels; whether student code is exactly `bsWriterID`;
-history pagination; and the join between acquired `bsPID` and popup numbered
-source states. Until checked locally, this is discovery evidence—not an
-automatic downloader.
+Still unverified live: whether the visible class label uniquely identifies the
+desired `GoClass` control; how to choose a `GoList` without an already-visible
+class; whether `GoClass` remains in `Lessons.php` and immediately exposes
+Student links; the launcher-to-history link shape and any additional history
+parameters; history table headings and detail-link extras; pagination; and the
+join between `bsPID` and popup numbered states. Until checked locally, this is
+discovery evidence—not an automatic downloader.
