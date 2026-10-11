@@ -5,7 +5,7 @@ Read-only Python downloader for outstanding student Writing submissions, intende
 ## Status
 - Design: approved 2026-10-11.
 - Implementation: **Stages 1–2 offline complete and CI-tested on Linux/Windows.** Next: narrowly authorised, human-controlled local read-only acquisition proof for **one manually opened Writing record**. No full live downloader or multi-class operation yet.
-- Source of truth for code: this private GitHub repository.
+- Source of truth for code: this public GitHub repository.
 - Site Map research and approved design: [Google Drive design](https://docs.google.com/document/d/1bZK24qxZ3d8e-8xYX93jfQ4FOHqh2DAbcm9EbR6aRxs/edit).
 
 ## Read first
