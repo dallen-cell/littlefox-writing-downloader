@@ -46,7 +46,7 @@ class GateBReviewTests(unittest.TestCase):
         result = review_browser(FakeBrowser([FakePage([]), page]), ask=ask, emit=display.append)
         self.assertEqual(result, {"outcome": "preview_verified_no_file", "export_created": False})
         self.assertTrue(any("Writing:\nMy spellingg stays." in line for line in display))
-        self.assertTrue(any("writer" in item for item in prompts))
+        self.assertTrue(any("actor shown by the site" in item for item in prompts))
         self.assertEqual(page.actions, [])
         self.assertIn("LOCAL-STUDENT-EVIDENCE", "\n".join(display))
 
