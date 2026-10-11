@@ -49,6 +49,8 @@ class SessionDistributionTests(unittest.TestCase):
                 self.assertIn("InstallAllUsers=0", archive.read("setup_session.ps1").decode())
                 self.assertIn("playwright==1.62.0", archive.read("setup_session.ps1").decode())
                 self.assertIn("--remote-debugging-port=9222", archive.read("run_one_record_probe.cmd").decode())
+                self.assertIn("https://school.littlefox.co.kr/main/", archive.read("run_one_record_probe.cmd").decode())
+                self.assertNotIn("about:blank", archive.read("run_one_record_probe.cmd").decode())
 
     def test_builder_never_overwrites_a_previous_distribution(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

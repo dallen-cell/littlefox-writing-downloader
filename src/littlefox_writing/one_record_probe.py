@@ -148,15 +148,24 @@ def _read_states(page: Any) -> tuple[tuple[_SourceState, ...], tuple[str, ...]]:
 
 
 def inspect_browser(browser: Any) -> ProbeReport:
-    """Inspect open tabs without navigation and return sanitized evidence only."""
+    """Inspect the unique Writing detail popup without changing any page."""
     pages = [page for context in browser.contexts for page in context.pages]
-    if len(pages) != 1:
-        blocker = "no_open_page" if not pages else "multiple_open_pages"
-        return ProbeReport(True, 0, 0, False, False, False, 0, 0, 0, (blocker,))
-    if not _is_candidate_page(pages[0]):
-        return ProbeReport(True, 0, 0, False, False, False, 0, 0, 0, ("no_matching_detail_page",))
+    if not pages:
+        return ProbeReport(True, 0, 0, False, False, False, 0, 0, 0, ("no_open_page",))
 
-    states, acquisition_blockers = _read_states(pages[0])
+    # Little Fox opens Writing details in a separate popup. The main manager
+    # window is expected to remain open: select by observed DOM structure,
+    # never by tab count, tab order, URL guesses, or a clicked page.
+    candidates = [page for page in pages if _is_candidate_page(page)]
+    if not candidates:
+        return ProbeReport(True, 0, 0, False, False, False, 0, 0, 0, ("no_matching_detail_page",))
+    if len(candidates) != 1:
+        return ProbeReport(
+            True, len(candidates), 0, False, False, False, 0, 0, 0,
+            ("multiple_matching_detail_pages",),
+        )
+
+    states, acquisition_blockers = _read_states(candidates[0])
     element_count = 0
     attribute_count = 0
     states_with_elements = 0
