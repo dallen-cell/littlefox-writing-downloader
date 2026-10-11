@@ -44,6 +44,11 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: python tools/build_session_package.py
 
+      - name: Smoke test extracted Windows session package
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: ./tools/smoke_session_windows.ps1 -PythonExecutable (Get-Command python).Source
+
       - name: Publish Windows session distribution
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4

@@ -1,3 +1,10 @@
+param(
+    # Used only for offline Windows CI or an explicit local Python selection.
+    # Normal session users can continue to run setup_session.cmd unchanged.
+    [string]$PythonExecutable = "",
+    [switch]$NonInteractive
+)
+
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 
@@ -8,12 +15,20 @@ Write-Host "==========================================="
 # Follow the working Recordings session distribution. A reset session computer
 # may have no Python installation; avoid the WindowsApps Store python.exe alias.
 $python = $null
+if ($PythonExecutable) {
+    if (-not (Test-Path -LiteralPath $PythonExecutable -PathType Leaf)) {
+        throw "Provided Python executable does not exist"
+    }
+    $python = (Resolve-Path -LiteralPath $PythonExecutable).Path
+}
 $known = @(
     "$env:LOCALAPPDATA\Programs\Python\Python313\python.exe",
     "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe"
 )
-foreach ($candidate in $known) {
-    if (Test-Path $candidate) { $python = $candidate; break }
+if (-not $python) {
+    foreach ($candidate in $known) {
+        if (Test-Path $candidate) { $python = $candidate; break }
+    }
 }
 
 if (-not $python) {
@@ -49,4 +64,6 @@ if ($LASTEXITCODE -ne 0) { throw "Source compilation failed" }
 Write-Host ""
 Write-Host "SESSION SETUP COMPLETE."
 Write-Host "Next: run run_one_record_probe.cmd"
-Read-Host "Press Enter to close"
+if (-not $NonInteractive) {
+    Read-Host "Press Enter to close" | Out-Null
+}
