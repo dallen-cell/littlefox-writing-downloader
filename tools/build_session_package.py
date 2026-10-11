@@ -17,6 +17,7 @@ STATIC_FILES = {
     "README.md": "README.md",
     "pyproject.toml": "pyproject.toml",
     "docs/one-record-probe.md": "docs/one-record-probe.md",
+    "docs/one-record-gate-b.md": "docs/one-record-gate-b.md",
     "session/README_SESSION.txt": "README_SESSION.txt",
     "session/setup_session.cmd": "setup_session.cmd",
     "session/setup_session.ps1": "setup_session.ps1",
