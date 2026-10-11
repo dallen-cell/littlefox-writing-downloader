@@ -27,17 +27,17 @@ class SessionDistributionTests(unittest.TestCase):
                 self.assertEqual(len(names), len(set(names)))
                 for necessary in (
                     "README_SESSION.txt", "setup_session.cmd",
-                    "setup_session.ps1", "run_one_record_probe.cmd",
+                    "setup_session.ps1", "run_one_record_probe.cmd", "run_one_record_review.cmd",
                     "pyproject.toml", "README.md",
                     "src/littlefox_writing/one_record_probe.py",
-                    "docs/one-record-probe.md",
+                    "docs/one-record-probe.md", "docs/one-record-gate-b.md",
                 ):
                     self.assertIn(necessary, names)
                 self.assertTrue(all(
                     name in {
                         "README_SESSION.txt", "setup_session.cmd", "setup_session.ps1",
-                        "run_one_record_probe.cmd", "pyproject.toml", "README.md",
-                        "docs/one-record-probe.md",
+                        "run_one_record_probe.cmd", "run_one_record_review.cmd", "pyproject.toml", "README.md",
+                        "docs/one-record-probe.md", "docs/one-record-gate-b.md",
                     } or name.startswith("src/littlefox_writing/") and name.endswith(".py")
                     for name in names
                 ))
@@ -49,6 +49,7 @@ class SessionDistributionTests(unittest.TestCase):
                 self.assertIn("InstallAllUsers=0", archive.read("setup_session.ps1").decode())
                 self.assertIn("playwright==1.62.0", archive.read("setup_session.ps1").decode())
                 self.assertIn("--remote-debugging-port=9222", archive.read("run_one_record_probe.cmd").decode())
+                self.assertIn("littlefox-one-record-review.exe", archive.read("run_one_record_review.cmd").decode())
                 self.assertIn("https://school.littlefox.co.kr/main/", archive.read("run_one_record_probe.cmd").decode())
                 self.assertNotIn("about:blank", archive.read("run_one_record_probe.cmd").decode())
 

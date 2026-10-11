@@ -17,6 +17,7 @@ New-Item -ItemType Directory -Path $work -Force | Out-Null
 Expand-Archive -LiteralPath $sessionZip -DestinationPath $work -Force
 $setup = Join-Path $work "setup_session.ps1"
 $probe = Join-Path $work ".venv\Scripts\littlefox-one-record-probe.exe"
+$review = Join-Path $work ".venv\Scripts\littlefox-one-record-review.exe"
 $venvPython = Join-Path $work ".venv\Scripts\python.exe"
 
 if (-not (Test-Path -LiteralPath $setup -PathType Leaf)) {
@@ -29,10 +30,15 @@ if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {
 if (-not (Test-Path -LiteralPath $probe -PathType Leaf)) {
     throw "Session setup did not install the probe entry point"
 }
+if (-not (Test-Path -LiteralPath $review -PathType Leaf)) {
+    throw "Session setup did not install the local human-review entry point"
+}
 & $venvPython -m pip check
 if ($LASTEXITCODE -ne 0) { throw "Extracted session dependencies failed pip check" }
 & $probe --help | Out-Null
 if ($LASTEXITCODE -ne 0) { throw "Extracted probe CLI help failed" }
+& $review --help | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "Extracted review CLI help failed" }
 
 $chromeCandidates = @(
     "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",

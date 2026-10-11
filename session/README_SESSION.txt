@@ -34,3 +34,17 @@ GitHub repository dallen-cell/littlefox-writing-downloader. Do not copy the
 Recordings collection logic into the Writing project. A subsequent session
 distribution may launch the validated full downloader once separately
 authorised. The current package contains NO class bulk scanning or export.
+
+EXPERIMENTAL GATE B - ONE RECORD ONLY
+Once Gate A has passed and the authenticated manager plus ONE Writing detail
+popup are open, run run_one_record_review.cmd in THIS extracted folder.
+It attaches to the existing Chrome session; it does NOT open a new window.
+The local terminal will show source writer/timestamp values and potentially
+student Writing. Do not share this private display or redirect it into logs.
+Only select actor roles and enter class/student/title/genre AFTER checking
+those values in the actual Little Fox pages. No automatic actor-code mapping,
+metadata discovery or correction-markup interpretation has been approved.
+Unknowns BLOCK; an exact preview needs explicit human confirmation. Only an
+optional user-chosen NEW .txt path and the word EXPORT allow a local file.
+No file is overwritten. Share ONLY the final SANITIZED SUMMARY.
+See docs/one-record-gate-b.md.
