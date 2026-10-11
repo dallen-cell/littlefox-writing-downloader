@@ -1,8 +1,10 @@
-# Windows session-PC setup (Stage 1)
+# Windows session-computer setup (Stage 1 offline demo)
 
 Stage 1 is offline and synthetic only. It does not install a browser, attach to Chrome, contact Little Fox, or accept operational student data.
 
-## Install for the current Windows session
+## Provisional installation for the current Windows session
+
+The commands below assume Python is available. This is an offline **development demonstration**, not a validated portable deployment or final launcher. Session-computer compatibility must not rely on a persistent Python installation or administrator rights.
 
 Open Command Prompt in the repository and run:
 
@@ -31,5 +33,5 @@ Existing ZIP files are never overwritten. Delete or rename an old *synthetic* ex
 
 ## Planned later-session pattern (not implemented or authorised here)
 
-A later approved stage is expected to use a staff member's manually authenticated Chrome session on the local school PC and attach local Python/Playwright through a localhost CDP debugging port. Credentials, cookies, student data, and browser profiles must remain outside this repository. Stage 1 has no Playwright dependency and contains no operational browser adapter.
+The narrowly authorised one-record probe uses a human's manually authenticated Chrome session on a suitable Windows session computer and attach local Python/Playwright through a localhost CDP debugging port. Credentials, cookies, student data, and browser profiles must remain outside this repository. Stage 1 has no Playwright dependency and contains no operational browser adapter.
 
