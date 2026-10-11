@@ -15,9 +15,11 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["tzdata>=2024.1"]
+probe = ["playwright>=1.48,<2"]
 
 [project.scripts]
 littlefox-writing = "littlefox_writing.cli:main"
+littlefox-one-record-probe = "littlefox_writing.one_record_probe:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

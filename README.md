@@ -46,3 +46,7 @@ See [Windows session-PC setup](docs/windows-session-pc.md) and the [Stage 1 impl
 ## Stage 2 offline interpretation
 
 The package also contains an offline-only normalized state interpreter and conservative synthetic markup parser. Its rule/evidence boundary and unresolved live-validation gates are documented in the [Stage 2 implementation report](docs/stage2-implementation.md). These modules do not discover or contact Little Fox.
+
+## One-record local validation probe
+
+The optional [one-record probe runbook](docs/one-record-probe.md) describes the separately run, human-controlled school-PC preflight. The probe attaches only to loopback CDP and reads one manually opened detail tab without navigation or mutation. It intentionally blocks interpretation and export until actual actor, metadata and markup evidence is reviewed.
