@@ -4,14 +4,15 @@ Read-only Python downloader for outstanding student Writing submissions, intende
 
 ## Status
 - Design: approved 2026-10-11.
-- Implementation: **Stage 1 offline foundation authorised**; live authenticated Little Fox access and later stages are not authorised by this approval.
+- Implementation: **Stage 1 merged and tested on GitHub Actions (Linux + Windows); Stage 2 offline state/markup parsing authorised**. Live authenticated Little Fox access remains separately unauthorised.
 - Source of truth for code: this private GitHub repository.
 - Site Map research and approved design: [Google Drive design](https://docs.google.com/document/d/1bZK24qxZ3d8e-8xYX93jfQ4FOHqh2DAbcm9EbR6aRxs/edit).
 
 ## Read first
 - [AGENTS.md](AGENTS.md) — Codex's persistent project and safety instructions.
 - [docs/requirements.md](docs/requirements.md) — approved functional/output specification.
-- [docs/stage1-handoff.md](docs/stage1-handoff.md) — the next bounded Codex Cloud coding task.
+- [docs/stage2-handoff.md](docs/stage2-handoff.md) — **current** bounded offline Codex task.
+- [docs/stage1-handoff.md](docs/stage1-handoff.md) — historical completed Stage 1 instructions.
 
 ## How development works
 Use the existing Codex Cloud environment and work on a reviewable branch. Offline synthetic tests first. Keep real student submissions, identifiers, browser credentials and session state out of GitHub. Later authorised live tests will run with a human-authenticated school Chrome session through local Python/CDP. Do not claim a working live downloader until that separate validation is complete.

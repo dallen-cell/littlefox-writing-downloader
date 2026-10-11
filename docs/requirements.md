@@ -1,6 +1,6 @@
 # Little Fox Writing Downloader — Python v1 requirements
 
-Status: **Design approved 2026-10-11**. Only **Stage 1 offline implementation** currently authorised. Actual Little Fox access and later live testing require separate approval.
+Status: **Design approved 2026-10-11**. Stage 1 offline foundation is merged and Linux/Windows CI-validated. On 2026-10-11, the user additionally authorised **Stage 2 offline state/markup implementation only**. Actual Little Fox access, browser/CDP integration and later live testing require separate approval. Stage 2 handoff: `docs/stage2-handoff.md`.
 
 ## Goal
 Discover latest outstanding student Writing submissions, export clean text for **human-led correction**, and **never** modify Little Fox. Initial execution target is a school session PC with human-authenticated Chrome and local Python/Playwright CDP attachment. The implementation begins in Codex Cloud using **offline synthetic tests only**.
@@ -49,7 +49,7 @@ Use the **latest student submission's** timestamp, not task creation date or tea
 6. Detect inherited teacher tags before deriving cleaned text; faithfully preserve student wording and paragraph breaks. Known markup families: Case, Erase, Spelling, Word Form, Word Replacement, Insert Word, Punctuation, Undo. Some text semantics (notably Case) remain unverified. Fail closed on unsupported semantic markup rather than invent replacements.
 7. Deduplicate within each run on persistent record identity **and** latest source round; no cross-session downloaded database in v1.
 
-No authenticated site testing is authorised during Stage 1.
+No authenticated site testing is authorised during Stages 1 or 2.
 
 ## Launcher, archive and error handling
 - Minimal command-line or text-menu interaction, plus a simple Windows launcher; no custom web GUI.
@@ -59,6 +59,12 @@ No authenticated site testing is authorised during Stage 1.
 - Report discovered/selected/scanned classes, students checked, outstanding records, date-filter matches, blocked/ambiguous records, errors and exported counts. Do not report failed scans as empty.
 - Any partial export must be clearly identified and explicitly confirmed. Operational ZIP remains local until the user manually transfers it into an appropriately restricted Drive destination.
 - No automated grading, website changes, remote server deployment or automatic Drive upload.
+
+## Development-stage gates
+Stage 1: Completed and merged. Pure filters, CLI, seven-field formatter, synthetic ZIP, errors and Linux/Windows CI.
+Stage 2: Authorised for **offline-only** normalized state chronology, outstanding classification and conservative markup/text rules with synthetic fixtures; use `docs/stage2-handoff.md`. Actual site actor encodings and markup signatures still require later validation and must not be invented.
+Stage 3: Not authorised — human-authenticated local Chrome/CDP integration and representative live read-only verification.
+Stage 4: Not authorised — controlled multi-class live validation.
 
 ## Release criteria
 Live acceptance gates, requiring separately authorised validation: complete current-class coverage and pagination; accurate latest student-vs-teacher chronology; correct Initial/Revision statuses; verified correction-markup stripping without student-text loss; correct age/date boundaries; true task genre; exactly seven fields; comprehensive exceptions; zero site mutations; and reproducible setup on a resetting Windows session computer.
