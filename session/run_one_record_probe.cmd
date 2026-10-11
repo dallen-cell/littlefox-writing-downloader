@@ -27,16 +27,17 @@ echo.
 echo Little Fox Writing - ONE RECORD read-only probe
 echo ===============================================
 echo.
-echo Close other Chrome windows that could interfere with debugging.
-echo This launcher opens one dedicated Chrome tab, not a class downloader.
+echo This launcher opens Little Fox's main page in a dedicated Chrome profile.
+echo The Writing detail opens in its own popup; keep both windows open.
 echo.
 
-start "" "%CHROME%" --remote-debugging-port=9222 --user-data-dir="%PROFILE%" --no-first-run --no-default-browser-check "about:blank"
+start "" "%CHROME%" --remote-debugging-port=9222 --user-data-dir="%PROFILE%" --no-first-run --no-default-browser-check "https://school.littlefox.co.kr/main/"
 
 echo In the new Chrome window:
 echo   1. Sign in to Little Fox yourself.
-echo   2. Manually open ONE Writing detail page through the site.
-echo   3. Leave only that page open in the dedicated debugging profile.
+echo   2. Navigate normally to ONE Writing detail popup.
+echo   3. Keep the main site window and that popup open.
+echo      If several Writing detail popups are open, close the extras.
 echo   4. Return here, then press any key once.
 echo.
 pause
