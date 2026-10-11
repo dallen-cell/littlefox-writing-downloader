@@ -84,4 +84,6 @@ persistent `bsPID` without treating revision rounds as separate tasks. The
 packaged `run_one_class_dry_run.cmd` performs a bounded, read-only current-page
 scan, creates no files, and reports only sanitized counts and blocker codes.
 Pagination, live labels, and the record-to-popup join remain unverified; this
-dry-run is not yet an automatic downloader.
+dry-run is not yet an automatic downloader. Its production route allowlist is
+intentionally empty pending authoritative path evidence, so unsupported or
+JavaScript-only class navigation blocks rather than being treated as zero.

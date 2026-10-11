@@ -97,6 +97,7 @@ def query_value(href: str, name: str) -> str | None:
 def class_contexts(links: tuple[SiteLinkEvidence, ...]) -> tuple[tuple[ClassContext, ...], tuple[AcquisitionIssue, ...]]:
     contexts: dict[str, ClassContext] = {}
     issues: list[AcquisitionIssue] = []
+    conflicted: set[str] = set()
     for link in links:
         scpid = query_value(link.href, "scpid")
         if scpid is None or query_value(link.href, "bsWriterID") is not None or query_value(link.href, "bsPID") is not None:
@@ -108,10 +109,12 @@ def class_contexts(links: tuple[SiteLinkEvidence, ...]) -> tuple[tuple[ClassCont
         candidate = ClassContext(class_code, scpid, link.href)
         existing = contexts.get(scpid)
         if existing is not None and existing != candidate:
+            conflicted.add(scpid)
             issues.append(AcquisitionIssue("ambiguous_class_link", "class_link"))
             contexts.pop(scpid, None)
             continue
-        contexts[scpid] = candidate
+        if scpid not in conflicted:
+            contexts[scpid] = candidate
     return tuple(sorted(contexts.values(), key=lambda item: (item.class_code.casefold(), item.scpid))), tuple(issues)
 
 
@@ -121,6 +124,7 @@ def student_contexts(
 ) -> tuple[tuple[StudentContext, ...], tuple[AcquisitionIssue, ...]]:
     contexts: dict[str, StudentContext] = {}
     issues: list[AcquisitionIssue] = []
+    conflicted: set[str] = set()
     for link in links:
         scpid = query_value(link.href, "scpid")
         writer_id = query_value(link.href, "bsWriterID")
@@ -139,10 +143,12 @@ def student_contexts(
         )
         existing = contexts.get(writer_id)
         if existing is not None and existing != candidate:
+            conflicted.add(writer_id)
             issues.append(AcquisitionIssue("ambiguous_student_link", "student_link"))
             contexts.pop(writer_id, None)
             continue
-        contexts[writer_id] = candidate
+        if writer_id not in conflicted:
+            contexts[writer_id] = candidate
     return tuple(sorted(contexts.values(), key=lambda item: (item.student_name.casefold(), item.student_code))), tuple(issues)
 
 
@@ -172,12 +178,18 @@ def writing_record_contexts(
         bspid = query_value(link.href, "bsPID")
         if bspid is None:
             continue
+        if bspid in conflicted:
+            continue
         linked_writer = query_value(link.href, "bsWriterID")
         linked_class = query_value(link.href, "scpid")
         if linked_writer is not None and linked_writer != student.student_code:
+            conflicted.add(bspid)
+            contexts.pop(bspid, None)
             issues.append(AcquisitionIssue("record_student_mismatch", "history_link"))
             continue
         if linked_class is not None and linked_class != student.scpid:
+            conflicted.add(bspid)
+            contexts.pop(bspid, None)
             issues.append(AcquisitionIssue("record_class_mismatch", "history_link"))
             continue
 

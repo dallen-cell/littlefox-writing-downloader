@@ -38,7 +38,10 @@ after authenticated Chrome is open, run run_one_class_dry_run.cmd and enter
 one exact class code. It follows only captured same-origin links, scans only
 current history pages, emits sanitized counts/codes, and creates no files.
 Pagination and live metadata relationships remain unverified, so status 3 is
-expected. See docs/automatic-acquisition.md. There is NO class export.
+expected. The checked-in route policy is intentionally empty until exact
+read-only paths are confirmed from the approved technical map, so the current
+launcher will block without navigating. See docs/automatic-acquisition.md.
+There is NO class export and an incomplete scan never means zero outstanding.
 
 EXPERIMENTAL GATE B - ONE RECORD ONLY
 Once Gate A has passed and the authenticated manager plus ONE Writing detail

@@ -125,6 +125,35 @@ class AcquisitionEvidenceTests(unittest.TestCase):
         self.assertIsNone(query_value("https://synthetic.invalid/?bsPID=one&bsPID=two", "bsPID"))
         self.assertIsNone(query_value("https://synthetic.invalid/?bsPID=", "bsPID"))
 
+    def test_conflicted_identities_cannot_be_readmitted_by_later_links(self) -> None:
+        classes, _ = class_contexts((
+            SiteLinkEvidence("https://synthetic.invalid/class?scpid=c1", "DEMO-A"),
+            SiteLinkEvidence("https://synthetic.invalid/other?scpid=c1", "DEMO-B"),
+            SiteLinkEvidence("https://synthetic.invalid/class?scpid=c1", "DEMO-A"),
+        ))
+        self.assertEqual(classes, ())
+
+        selected = ClassContext("DEMO-A", "c1", "class-link")
+        students, _ = student_contexts(selected, (
+            SiteLinkEvidence("https://synthetic.invalid/student?scpid=c1&bsWriterID=s1", "First"),
+            SiteLinkEvidence("https://synthetic.invalid/other?scpid=c1&bsWriterID=s1", "Second"),
+            SiteLinkEvidence("https://synthetic.invalid/student?scpid=c1&bsWriterID=s1", "First"),
+        ))
+        self.assertEqual(students, ())
+
+        student = StudentContext("DEMO-A", "c1", "First", "s1", "student-link")
+        good = SiteLinkEvidence(
+            "https://synthetic.invalid/record?bsPID=p1",
+            "Task", (("Title", "Task"), ("Type", "Narrative")),
+        )
+        conflicting = SiteLinkEvidence(
+            "https://synthetic.invalid/record?bsPID=p1&bsWriterID=other",
+            "Task", (("Title", "Task"), ("Type", "Narrative")),
+        )
+        records, issues = writing_record_contexts(student, (good, conflicting, good))
+        self.assertEqual(records, ())
+        self.assertIn("record_student_mismatch", {issue.code for issue in issues})
+
 
 if __name__ == "__main__":
     unittest.main()

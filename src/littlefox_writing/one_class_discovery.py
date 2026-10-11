@@ -12,7 +12,7 @@ from collections import Counter
 from dataclasses import asdict, dataclass
 import json
 from typing import Any, Callable
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import parse_qsl, urljoin, urlsplit
 
 from .acquisition import (
     SiteLinkEvidence,
@@ -30,6 +30,29 @@ _MAX_RECORDS = 1000
 _ROUTE_LABELS = ("Homework", "Writing")
 
 
+@dataclass(frozen=True, slots=True)
+class ReadOnlyRoutePolicy:
+    """Exact documented GET paths for each acquisition navigation family."""
+
+    class_paths: frozenset[str] = frozenset()
+    student_paths: frozenset[str] = frozenset()
+    homework_paths: frozenset[str] = frozenset()
+    writing_paths: frozenset[str] = frozenset()
+
+
+# The repository records identifier relationships, but not verified live route
+# paths. Production therefore fails closed until those paths are added from the
+# authoritative map. Tests inject synthetic documented paths.
+DOCUMENTED_ROUTE_POLICY = ReadOnlyRoutePolicy()
+
+_ALLOWED_QUERY_KEYS = {
+    "class": frozenset({"scpid"}),
+    "student": frozenset({"scpid", "bsWriterID"}),
+    "homework": frozenset({"scpid", "bsWriterID"}),
+    "writing": frozenset({"scpid", "bsWriterID"}),
+}
+
+
 class DiscoveryBlock(Exception):
     """Fail-closed navigation or evidence condition with a fixed code."""
 
@@ -45,6 +68,8 @@ class DiscoveryReport:
     complete_contexts: int
     navigation_gets: int
     pagination_scanned: bool
+    scan_complete: bool
+    outstanding_writing: int | None
     blocker_counts: dict[str, int]
     files_created: int = 0
 
@@ -105,12 +130,29 @@ def _same_origin_site_link(current_url: str, href: str) -> bool:
     return target.scheme in ("http", "https") and not target.username and not target.password and _origin(href) == _origin(current_url)
 
 
-def _navigate(page: Any, href: str) -> None:
+def _family_paths(policy: ReadOnlyRoutePolicy, family: str) -> frozenset[str]:
+    return getattr(policy, family + "_paths")
+
+
+def _documented_read_only_link(href: str, policy: ReadOnlyRoutePolicy, family: str) -> bool:
+    parsed = urlsplit(href)
+    if parsed.path not in _family_paths(policy, family):
+        return False
+    pairs = parse_qsl(parsed.query, keep_blank_values=True)
+    keys = [key for key, _ in pairs]
+    if any(key not in _ALLOWED_QUERY_KEYS[family] for key in keys):
+        return False
+    return len(keys) == len(set(keys))
+
+
+def _navigate(page: Any, href: str, policy: ReadOnlyRoutePolicy, family: str) -> None:
     if not _same_origin_site_link(page.url, href):
         raise DiscoveryBlock("unsafe_or_cross_origin_link")
+    if not _documented_read_only_link(href, policy, family):
+        raise DiscoveryBlock("unsupported_or_unsafe_" + family + "_route")
     page.goto(href, wait_until="domcontentloaded")
-    if _origin(page.url) != _origin(href):
-        raise DiscoveryBlock("cross_origin_redirect")
+    if page.url != href:
+        raise DiscoveryBlock("unexpected_navigation_redirect")
 
 
 def _route_link(
@@ -138,6 +180,7 @@ def _history_links(
     page: Any,
     student: Any,
     link_reader: Callable[[Any], tuple[SiteLinkEvidence, ...]],
+    route_policy: ReadOnlyRoutePolicy,
 ) -> tuple[tuple[SiteLinkEvidence, ...], int]:
     """Reach the current Writing history page through documented link labels."""
     links = link_reader(page)
@@ -148,7 +191,7 @@ def _history_links(
         route = _route_link(links, label, scpid=student.scpid, writer_id=student.student_code)
         if route is None:
             raise DiscoveryBlock("missing_" + label.casefold() + "_link")
-        _navigate(page, route.href)
+        _navigate(page, route.href, route_policy, label.casefold())
         navigation_gets += 1
         links = link_reader(page)
         if any(query_value(link.href, "bsPID") is not None for link in links):
@@ -161,6 +204,7 @@ def discover_one_class(
     class_code: str,
     *,
     link_reader: Callable[[Any], tuple[SiteLinkEvidence, ...]] = collect_site_links,
+    route_policy: ReadOnlyRoutePolicy = DOCUMENTED_ROUTE_POLICY,
 ) -> DiscoveryOutcome:
     """Follow actual GET links for one class and return a no-file dry run."""
     pages = [page for context in browser.contexts for page in context.pages]
@@ -174,19 +218,23 @@ def discover_one_class(
         issues.update(issue.code for issue in found_issues)
         class_matches.extend((page, item) for item in classes if item.class_code == class_code)
     if len(class_matches) != 1:
-        issues["selected_class_missing" if not class_matches else "selected_class_ambiguous"] += 1
+        # Known class navigation may be JavaScript-driven. Without a supported
+        # documented control, absence of an anchor is acquisition failure—not
+        # evidence that the class or its outstanding Writing count is zero.
+        missing_code = "class_navigation_unsupported_or_missing" if not class_matches else "selected_class_ambiguous"
+        issues[missing_code] += 1
         return DiscoveryOutcome(
-            DiscoveryReport(True, total_class_links, False, 0, 0, 0, 0, 0, False, dict(issues)),
+            DiscoveryReport(True, total_class_links, False, 0, 0, 0, 0, 0, False, False, None, dict(issues)),
             (),
         )
 
     page, selected_class = class_matches[0]
     try:
-        _navigate(page, selected_class.href)
+        _navigate(page, selected_class.href, route_policy, "class")
     except DiscoveryBlock as error:
         issues[str(error)] += 1
         return DiscoveryOutcome(
-            DiscoveryReport(True, total_class_links, True, 0, 0, 0, 0, 0, False, dict(issues)),
+            DiscoveryReport(True, total_class_links, True, 0, 0, 0, 0, 0, False, False, None, dict(issues)),
             (),
         )
     navigation_gets = 1
@@ -201,9 +249,9 @@ def discover_one_class(
     records_seen = 0
     for student in students:
         try:
-            _navigate(page, student.href)
+            _navigate(page, student.href, route_policy, "student")
             navigation_gets += 1
-            history_links, route_gets = _history_links(page, student, link_reader)
+            history_links, route_gets = _history_links(page, student, link_reader, route_policy)
             navigation_gets += route_gets
             records, record_issues = writing_record_contexts(student, history_links)
             issues.update(issue.code for issue in record_issues)
@@ -230,6 +278,8 @@ def discover_one_class(
         complete_contexts=len(contexts),
         navigation_gets=navigation_gets,
         pagination_scanned=False,
+        scan_complete=False,
+        outstanding_writing=None,
         blocker_counts=dict(sorted(issues.items())),
     )
     return DiscoveryOutcome(report, tuple(contexts))
@@ -254,14 +304,14 @@ def run(argv: list[str] | None = None) -> int:
             browser = playwright.chromium.connect_over_cdp(args.cdp_endpoint)
             outcome = discover_one_class(browser, args.class_code)
     except ProbeConfigurationError:
-        report = DiscoveryReport(False, 0, False, 0, 0, 0, 0, 0, False, {"invalid_local_cdp_endpoint": 1})
+        report = DiscoveryReport(False, 0, False, 0, 0, 0, 0, 0, False, False, None, {"invalid_local_cdp_endpoint": 1})
         print(report.sanitized_json())
         return 2
     except Exception as error:
         # Exception messages can contain URLs or student data; only the fixed
         # category and runtime type are emitted.
         report = DiscoveryReport(
-            False, 0, False, 0, 0, 0, 0, 0, False,
+            False, 0, False, 0, 0, 0, 0, 0, False, False, None,
             {"local_read_failed:" + type(error).__name__: 1},
         )
         print(report.sanitized_json())
