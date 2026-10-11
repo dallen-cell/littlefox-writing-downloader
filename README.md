@@ -4,14 +4,15 @@ Read-only Python downloader for outstanding student Writing submissions, intende
 
 ## Status
 - Design: approved 2026-10-11.
-- Implementation: **Stage 1 merged and tested on GitHub Actions (Linux + Windows); Stage 2 offline state/markup parsing authorised**. Live authenticated Little Fox access remains separately unauthorised.
+- Implementation: **Stages 1–2 offline complete and CI-tested on Linux/Windows.** Next: narrowly authorised, human-controlled local read-only acquisition proof for **one manually opened Writing record**. No full live downloader or multi-class operation yet.
 - Source of truth for code: this private GitHub repository.
 - Site Map research and approved design: [Google Drive design](https://docs.google.com/document/d/1bZK24qxZ3d8e-8xYX93jfQ4FOHqh2DAbcm9EbR6aRxs/edit).
 
 ## Read first
 - [AGENTS.md](AGENTS.md) — Codex's persistent project and safety instructions.
 - [docs/requirements.md](docs/requirements.md) — approved functional/output specification.
-- [docs/stage2-handoff.md](docs/stage2-handoff.md) — **current** bounded offline Codex task.
+- [docs/one-record-validation.md](docs/one-record-validation.md) — **current** one-record, read-only local proof and stop conditions.
+- [docs/stage2-handoff.md](docs/stage2-handoff.md) — completed offline Stage 2 task.
 - [docs/stage1-handoff.md](docs/stage1-handoff.md) — historical completed Stage 1 instructions.
 
 ## How development works
