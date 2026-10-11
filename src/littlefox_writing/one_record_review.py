@@ -148,12 +148,12 @@ def review_browser(
     if output.suffix.lower() != ".txt":
         raise LocalBlock("output_must_be_txt")
 
-    # Refresh from the same popup before writing, in case the site changed.
+    if ask("Write ONE local .txt file at your chosen location? Type EXPORT: ").strip() != "EXPORT":
+        raise LocalBlock("export_not_confirmed")
+    # The final source read happens AFTER confirmation, just before writing.
     latest_page, latest_states = _snapshot(browser)
     if latest_page is not page or _source_signature(latest_states) != original:
         raise LocalBlock("source_changed_since_review")
-    if ask("Write ONE local .txt file at your chosen location? Type EXPORT: ").strip() != "EXPORT":
-        raise LocalBlock("export_not_confirmed")
     # Exclusive creation: never overwrite; user controls destination.
     try:
         with output.open("x", encoding="utf-8", newline="\n") as file:
