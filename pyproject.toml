@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "littlefox-writing-downloader"
+version = "0.1.0"
+description = "Offline foundation for exporting synthetic Little Fox Writing records"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "Proprietary"}
+dependencies = []
+
+[project.scripts]
+littlefox-writing = "littlefox_writing.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
