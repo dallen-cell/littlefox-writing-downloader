@@ -3,7 +3,7 @@
 ## Project and current authorisation
 Develop a **read-only Python downloader** for outstanding student Writing in the authenticated Little Fox manager website.
 
-**Current approved boundaries (2026-10-11):** Stages 1 and 2 are completed offline; **one tightly bounded Stage 3 read-only local Writing-record validation** is approved following the proportionality review. Codex Cloud may develop a small local CDP probe with synthetic tests, but must **not** access a live Little Fox session itself. A human on a suitable Windows session computer can later test one manually opened, authenticated Writing detail page with read-only DOM access only. Class-wide collection, Stage 4 and website mutations remain unauthorised.
+**Current approved boundaries (2026-10-11):** Stages 1–2 are completed offline. **Gate A passed on one live, human-opened Writing popup** using a resettable Windows session computer; raw field content was not shared. The user's next instruction authorises narrowly bounded **Gate B one-record human-verified local interpretation and optional seven-field TXT**, not automatic class discovery or batch exports. Prepare and test the local code offline. Actual Little Fox access occurs only in the human's local authenticated Chrome session. Do not treat the operator's actor labels or manually verified history metadata as automatic site mappings. Class-wide collection, Stage 4 and website mutations remain unauthorised.
 
 Read `docs/requirements.md` and **current** `docs/one-record-validation.md` before further coding. Previous `docs/stage1-handoff.md` and `docs/stage2-handoff.md` describe completed offline stages. These are the code contract; the Google Drive Little Fox Site Map remains the authoritative technical research record.
 
