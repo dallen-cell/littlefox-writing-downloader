@@ -44,3 +44,17 @@ The existing canonical Writing technical map (Google Drive document ID `1_MIinu-
 **Gate B — separately bounded single-record interpretation:** only after the preflight succeeds, verify one record's source-state actor, outstanding status, required metadata and correction text against normal UI observations. Treat unknown source values and unsupported markup as blockers. The current probe does not implement this gate.
 
 **Gate C — future batch operation:** class discovery, pagination, date-based selection and ZIP export require separate approval after the one-record verification. Do not extend synthetic parser development while Gate A remains untested.
+
+## Gate B experimental local adapter after live Gate A success
+
+The corrected Writing popup/CDP Gate A was confirmed in one authenticated
+user-operated session (three embedded source states, source/writer/time fields
+present). `run_one_record_review.cmd` in the separate session package now
+offers a minimal human-verified one-record review. It reads only the already-open
+popup; the operator must establish source actors, latest outstanding status,
+five context/history fields and exact corrected-target text by comparing with
+normal site pages. Unknown markup or unsupported state chains block rather than
+export. Preview stays on the local computer. A single new seven-field TXT
+requires explicit operator confirmation; no automatic site traversal.
+This feature is offline-tested, not yet live-accepted. See
+`docs/one-record-gate-b.md`. Gate C remains separate and unauthorised.
