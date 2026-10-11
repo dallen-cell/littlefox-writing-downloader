@@ -41,3 +41,7 @@ littlefox-writing --demo --all-classes --within 7 --output synthetic-writing.zip
 ```
 
 See [Windows session-PC setup](docs/windows-session-pc.md) and the [Stage 1 implementation report](docs/stage1-implementation.md). No live-browser functionality exists in Stage 1.
+
+## Stage 2 offline interpretation
+
+The package also contains an offline-only normalized state interpreter and conservative synthetic markup parser. Its rule/evidence boundary and unresolved live-validation gates are documented in the [Stage 2 implementation report](docs/stage2-implementation.md). These modules do not discover or contact Little Fox.
