@@ -33,7 +33,16 @@ This ZIP is a generated session distribution from the canonical public
 GitHub repository dallen-cell/littlefox-writing-downloader. Do not copy the
 Recordings collection logic into the Writing project. A subsequent session
 distribution may launch the validated full downloader once separately
-authorised. The current package contains NO class bulk scanning or export.
+authorised. The package includes a bounded one-class acquisition dry-run:
+after authenticated Chrome is open, run run_one_class_dry_run.cmd and enter
+one exact class code. It follows only captured same-origin links, scans only
+current history pages, emits sanitized counts/codes, and creates no files.
+Pagination and live metadata relationships remain unverified, so status 3 is
+expected. The checked-in policy permits only confirmed read-only paths and an
+actual matching GoClass control. It stops at class_list_selection_required if
+the requested class needs an unverified GoList choice, and blocks unknown
+history parameters. See docs/automatic-acquisition.md.
+There is NO class export and an incomplete scan never means zero outstanding.
 
 EXPERIMENTAL GATE B - ONE RECORD ONLY
 Once Gate A has passed and the authenticated manager plus ONE Writing detail
@@ -42,8 +51,9 @@ It attaches to the existing Chrome session; it does NOT open a new window.
 The local terminal will show source writer/timestamp values and potentially
 student Writing. Do not share this private display or redirect it into logs.
 Only select actor roles and enter class/student/title/genre AFTER checking
-those values in the actual Little Fox pages. No automatic actor-code mapping,
-metadata discovery or correction-markup interpretation has been approved.
+those values in the actual Little Fox pages. No automatic actor-code mapping
+or new correction-markup interpretation has been approved. The separate
+one-class dry-run may collect metadata evidence; it does not feed this review.
 Unknowns BLOCK; an exact preview needs explicit human confirmation. Only an
 optional user-chosen NEW .txt path and the word EXPORT allow a local file.
 No file is overwritten. Share ONLY the final SANITIZED SUMMARY.

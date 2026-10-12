@@ -4,7 +4,7 @@ Read-only Python downloader for outstanding student Writing submissions, intende
 
 ## Status
 - Design: approved 2026-10-11.
-- Implementation: **Stages 1–2 offline complete. Gate A (live one-record CDP/DOM shape) passed 2026-10-11. Gate B human-guided one-record review is an experimental offline-tested adapter pending live validation.** No automatic full downloader or multi-class operation yet.
+- Implementation: **Stages 1–2 offline complete. Gate A passed. A source-grounded, one-class automatic-acquisition dry-run is offline-tested and pending local live validation.** No automatic export or multi-class operation yet.
 - Source of truth for code: this public GitHub repository.
 - Site Map research and approved design: [Google Drive design](https://docs.google.com/document/d/1bZK24qxZ3d8e-8xYX93jfQ4FOHqh2DAbcm9EbR6aRxs/edit).
 
@@ -74,3 +74,17 @@ TXT can be created only after exact preview confirmation and the word EXPORT.
 No full class downloader, automatic mapping or grading is implemented.
 See [Gate B runbook](docs/one-record-gate-b.md). Do not copy the private local
 review display into chat or any repository.
+
+## One-class automatic-acquisition dry-run
+
+The [automatic acquisition slice](docs/automatic-acquisition.md) replaces the
+five manually transcribed metadata values when class, student, and Writing
+history links provide consistent evidence. It uses `scpid`, `bsWriterID`, and
+persistent `bsPID` without treating revision rounds as separate tasks. The
+packaged `run_one_class_dry_run.cmd` performs a bounded, read-only current-page
+scan, creates no files, and reports only sanitized counts and blocker codes.
+Pagination, live labels, and the record-to-popup join remain unverified; this
+dry-run is not yet an automatic downloader. Its production allowlist contains
+only the confirmed read-only routes and uses an actual `GoClass` control while
+keeping `scno` distinct from `scpid`. An unresolved `GoList` choice or unknown
+history parameters block rather than being treated as zero.

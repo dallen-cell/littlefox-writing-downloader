@@ -18,11 +18,13 @@ STATIC_FILES = {
     "pyproject.toml": "pyproject.toml",
     "docs/one-record-probe.md": "docs/one-record-probe.md",
     "docs/one-record-gate-b.md": "docs/one-record-gate-b.md",
+    "docs/automatic-acquisition.md": "docs/automatic-acquisition.md",
     "session/README_SESSION.txt": "README_SESSION.txt",
     "session/setup_session.cmd": "setup_session.cmd",
     "session/setup_session.ps1": "setup_session.ps1",
     "session/run_one_record_probe.cmd": "run_one_record_probe.cmd",
     "session/run_one_record_review.cmd": "run_one_record_review.cmd",
+    "session/run_one_class_dry_run.cmd": "run_one_class_dry_run.cmd",
 }
 
 
