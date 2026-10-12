@@ -84,6 +84,8 @@ class OneClassDiscoveryTests(unittest.TestCase):
     def test_go_class_parser_is_exact_and_does_not_accept_unknown_functions(self) -> None:
         parsed = _go_class_arguments("GoClass('r','scno','t','teacher','l','m');")
         self.assertEqual(len(parsed), 6)
+        prefixed = _go_class_arguments("JavaScript:GoClass('r','scno','t','teacher','l','m');")
+        self.assertEqual(len(prefixed), 6)
         self.assertIsNone(_go_class_arguments("GoClass('too','few')"))
         self.assertIsNone(_go_class_arguments("Unknown('r','s','t','n','l','m')"))
 
@@ -135,3 +137,4 @@ class OneClassDiscoveryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

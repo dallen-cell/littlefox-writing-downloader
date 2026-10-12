@@ -158,6 +158,8 @@ def _split_call_arguments(source: str) -> tuple[str, ...] | None:
 
 def _go_class_arguments(handler: str) -> tuple[str, ...] | None:
     cleaned = handler.strip()
+    if cleaned.casefold().startswith("javascript:"):
+        cleaned = cleaned[len("javascript:"):].strip()
     if cleaned.startswith("return "):
         cleaned = cleaned[7:].strip()
     if cleaned.endswith(";"):
@@ -472,4 +474,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
