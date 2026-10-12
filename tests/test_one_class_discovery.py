@@ -8,6 +8,8 @@ from littlefox_writing.one_class_discovery import (
     _go_class_arguments,
     _javascript_call_arguments,
     _javascript_string,
+    _select_roster_class,
+    _table_heading_index,
     discover_one_class,
     discover_one_class_live,
 )
@@ -54,6 +56,34 @@ class FakePopup:
         return self.closed
 
 
+class FakeNavigationExpectation:
+    def __init__(self, events: list[str]) -> None:
+        self.events = events
+
+    def __enter__(self):
+        self.events.append("navigation-enter")
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.events.append("navigation-exit")
+
+
+class FakeRosterFrame:
+    def __init__(self, events: list[str]) -> None:
+        self.events = events
+
+    def expect_navigation(self, *, wait_until: str):
+        self.events.append("wait:" + wait_until)
+        return FakeNavigationExpectation(self.events)
+
+
+class FakeClassFilter:
+    def __init__(self, events: list[str]) -> None:
+        self.events = events
+
+    def select_option(self, value: str) -> None:
+        self.events.append("select:" + value)
+
+
 def reader(page: FakeNavigationPage) -> tuple[SiteLinkEvidence, ...]:
     return page.evidence[page.url]
 
@@ -69,6 +99,20 @@ def activate(control: ClassControlEvidence) -> None:
 
 
 class OneClassDiscoveryTests(unittest.TestCase):
+    def test_roster_filter_waits_for_iframe_navigation_before_reading_rows(self) -> None:
+        events: list[str] = []
+        _select_roster_class(FakeRosterFrame(events), FakeClassFilter(events), "synthetic-class")
+        self.assertEqual(events, [
+            "wait:domcontentloaded",
+            "navigation-enter",
+            "select:synthetic-class",
+            "navigation-exit",
+        ])
+
+    def test_table_heading_allows_only_trailing_non_text_sort_marker(self) -> None:
+        self.assertEqual(_table_heading_index(["no", "name ��", "classname"], "Name"), 1)
+        self.assertIsNone(_table_heading_index(["no", "name extra", "classname"], "Name"))
+
     def test_live_control_orchestration_propagates_one_roster_record(self) -> None:
         manager = FakeNavigationPage({})
         manager.url = ORIGIN + "/Manager/index.html"
@@ -247,5 +291,6 @@ class OneClassDiscoveryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 
 

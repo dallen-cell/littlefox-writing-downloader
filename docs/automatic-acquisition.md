@@ -93,11 +93,42 @@ history, title/genre extraction, missing and ambiguous evidence, strict
 read-only route policies, unsafe endpoints and redirects, bounded no-file
 behavior, incomplete-scan reporting, and sanitized diagnostics.
 
-Still unverified live: whether the visible class label uniquely identifies the
-desired `GoClass` control; how to choose a `GoList` without an already-visible
-class; whether `GoClass` remains in `Lessons.php` and immediately exposes
-Student links; the launcher-to-history link shape and any additional history
-parameters; history table headings and detail-link extras; pagination; and the
-join between `bsPID` and popup numbered states. Until checked locally, this is
-discovery evidence—not an automatic downloader.
+## 2026-10-12 roster correction checkpoint
+
+The user confirmed that all five current classes KM201, KM301, KM401, KM501,
+and KM550 have enrolled students. They are C1 classes without Writing, so an
+absence of Writing assignments must not be interpreted as an empty roster.
+This checkpoint exercised only KM201 and did not inspect Writing history.
+
+The KM201 GET filter selected the intended class, and its filtered document
+contained five `ViewStudent` controls. The previous empty result was caused by
+waiting for `domcontentloaded` on the already-loaded iframe after changing
+`sClass`; that wait could finish before the filter's new iframe navigation.
+The subsequent List Show / Hide check then ran against the old document, which
+was replaced by a new hidden roster. The correction wraps `select_option()` in
+`Frame.expect_navigation(wait_until="domcontentloaded")` so parsing starts on
+the filtered document.
+
+Two parser details were then verified on the same filtered KM201 roster. The
+sortable Name heading includes a trailing non-text sort marker, so heading
+matching now accepts an exact label or that label followed only by a non-text
+marker. The displayed student name is the `ViewStudent` link text, so the
+parser reads that text directly instead of deleting the link before reading
+the cell. All five observed rows had an exact `ClassName` value of KM201;
+therefore the exact class comparison was not rejecting valid rows. The List
+Show / Hide function was confirmed to change only `#list_div` visibility; the
+correctly synchronized filtered roster was already visible and did not need it.
+
+Focused synthetic validation passes ten tests in
+`tests/test_one_class_discovery.py`. A sanitized production-helper check then
+returned five KM201 students with nonempty names and codes; no identities were
+printed or retained. One immediately preceding attempt stopped at the existing
+filter-safety precondition before the roster script was ready, while two
+immediate retries completed. Frame/script readiness therefore remains a narrow
+live uncertainty if that blocker recurs.
+
+The next action is to test automatic acquisition on one current D2-or-higher
+class with Writing, once such a class is selected and authenticated. Pagination,
+batch ZIP production, and broader class mapping remain outside this checkpoint.
+
 

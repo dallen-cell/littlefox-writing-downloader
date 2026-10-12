@@ -315,11 +315,33 @@ def _table_columns(frame: Any, required: tuple[str, ...]) -> dict[str, int]:
     rows = frame.locator("table tr")
     for position in range(rows.count()):
         values = [" ".join(value.split()).casefold() for value in rows.nth(position).locator("th, td").all_text_contents()]
-        if all(name.casefold() in values for name in required):
-            matches.append({name: values.index(name.casefold()) for name in required})
+        columns = {name: _table_heading_index(values, name) for name in required}
+        if all(index is not None for index in columns.values()):
+            matches.append({name: index for name, index in columns.items() if index is not None})
     if len(matches) != 1:
         raise DiscoveryBlock("missing_or_ambiguous_table_headings")
     return matches[0]
+
+
+def _table_heading_index(values: list[str], name: str) -> int | None:
+    """Match a heading exactly, allowing only a trailing non-text sort marker."""
+    expected = name.casefold()
+    candidates = []
+    for index, value in enumerate(values):
+        suffix = value[len(expected):] if value.startswith(expected) else ""
+        if value == expected or (
+            suffix.startswith(" ")
+            and suffix.strip()
+            and not any(char.isalnum() for char in suffix)
+        ):
+            candidates.append(index)
+    return candidates[0] if len(candidates) == 1 else None
+
+
+def _select_roster_class(frame: Any, class_filter: Any, value: str) -> None:
+    """Select one site-provided class and wait for its iframe GET navigation."""
+    with frame.expect_navigation(wait_until="domcontentloaded"):
+        class_filter.select_option(value)
 
 
 def _roster_controls(frame: Any, class_code: str) -> tuple[tuple[Any, str, str], ...]:
@@ -349,8 +371,7 @@ def _roster_controls(frame: Any, class_code: str) -> tuple[tuple[Any, str, str],
         or any(value in filter_source.casefold() for value in ("window.open", "fetch", "xmlhttprequest"))
     ):
         raise DiscoveryBlock("roster_class_filter_unsupported_or_ambiguous")
-    class_filter.select_option(option_matches[0])
-    frame.wait_for_load_state("domcontentloaded")
+    _select_roster_class(frame, class_filter, option_matches[0])
     if urlsplit(frame.url).path != "/Manager/Student/list.php":
         raise DiscoveryBlock("unexpected_roster_filter_navigation")
 
@@ -384,13 +405,7 @@ def _roster_controls(frame: Any, class_code: str) -> tuple[tuple[Any, str, str],
         observed_class = " ".join(cells.nth(columns["ClassName"]).inner_text().split())
         if observed_class != class_code or student_code is None:
             continue
-        name_cell = cells.nth(columns["Name"])
-        student_name = name_cell.evaluate(
-            "cell => { const copy = cell.cloneNode(true); "
-            "copy.querySelectorAll(\"a[href*='ViewStudent'],button,input,img\").forEach(e => e.remove()); "
-            "return copy.innerText; }"
-        )
-        student_name = " ".join(student_name.split())
+        student_name = " ".join(control.inner_text().split())
         if not student_name:
             raise DiscoveryBlock("missing_student_name")
         found.append((control, student_name, student_code))
@@ -837,6 +852,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
 
 
