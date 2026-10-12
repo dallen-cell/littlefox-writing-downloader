@@ -29,9 +29,21 @@ No actor codes, correction signatures, route URLs, selectors, or values are
 guessed. Multiple source states can be attached to one acquired `bsPID` and
 passed to the existing Stage 2 interpreter; a revision is not a new task.
 
-The collector reads exact `GoClass` calls, generic anchors, and semantic table
-headings. It clicks the matched site control without reconstructing or
-evaluating its arguments. A site-supplied, same-origin link is not sufficient permission to
+The collector reads exact `GoClass` calls, including the live
+`JavaScript:GoClass(...)` form, then opens the manager's Students area. It
+matches the requested current-class label to exactly one `sClass` option and
+uses the roster's same-page GET filter. If the roster is hidden, it invokes
+`show_list()` only after verifying that the live function merely toggles
+`#list_div.style.display`; the operational `change_class()` control is never
+used. Student profiles are opened only through visible `ViewStudent` controls.
+The profile's `StHomework` control and the Homework page's exact `new_win`
+Writing launcher lead to the student's history popup.
+
+History records use the site's 12-argument `doView` controls. The collector
+activates each current-page control, validates the resulting detail URL and
+identity tuple, reads title and genre from the six-column history row, then
+returns through browser history. It never reconstructs or evaluates a control's
+arguments. A site-supplied, same-origin link is not sufficient permission to
 navigate: each GET must also match an exact documented read-only route family
 and that family's permitted identity query keys. Unknown paths, extra query
 keys (including action/process parameters), credentials, cross-origin links,
@@ -39,9 +51,9 @@ and every redirect block before further acquisition.
 
 `DOCUMENTED_ROUTE_POLICY` contains only the confirmed Lessons, Student,
 Student Homework, Writing launcher, Writing history, and Writing detail paths.
-Student and launcher parameters are exact. Unknown additional history
-parameters produce `unsupported_or_unsafe_writing_history_route` pending
-validation.
+Student and launcher parameters are exact. Writing history additionally allows
+only the observed `_ISmine` and `baBID` keys; Writing detail additionally
+requires the observed `page` key. Other parameters block.
 
 `GoList` controls are detected but not invoked: the handoff confirms their
 behavior but does not establish which actual list contains a requested class.
@@ -88,3 +100,4 @@ Student links; the launcher-to-history link shape and any additional history
 parameters; history table headings and detail-link extras; pagination; and the
 join between `bsPID` and popup numbered states. Until checked locally, this is
 discovery evidence—not an automatic downloader.
+
